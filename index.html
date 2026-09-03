@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commercial Property Quote Request — Elite Insurance &amp; Beyond</title>
+<meta name="description" content="Tell us about the building and what you have now. We come back with options from the carriers that actually write your class of property.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#274057">
+<link rel="icon" href="assets/elite-insurance-beyond-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Tokens are the same set as the brand kit. Keep them in sync. */
+:root{
+  --navy:#274057; --navy-deep:#1B2E40;
+  --amber:#F7AD40; --amber-deep:#E0912A;
+  --ink:#101A24; --slate:#5A6B7C;
+  --mist:#EEF1F5; --rule:#D8DEE6; --paper:#FFFFFF;
+  --danger:#A32C24;
+  --font:'Inter Tight',Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --shell:1120px;
+  --gutter:clamp(18px,4vw,48px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+h1,h2,p{margin:0}
+a{color:var(--navy);text-decoration:underline;text-underline-offset:3px}
+a:hover{color:var(--amber-deep)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.shell{max-width:var(--shell);margin:0 auto;padding-left:var(--gutter);padding-right:var(--gutter)}
+.skip{position:absolute;left:-9999px}
+.skip:focus{position:fixed;left:16px;top:16px;z-index:10;background:var(--amber);color:var(--ink);padding:10px 16px;font-weight:600;text-decoration:none}
+
+/* --- Masthead --- */
+.masthead{background:var(--navy);color:#fff}
+.masthead .shell{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 32px;padding-top:16px;padding-bottom:16px}
+.brand{display:flex;align-items:center;gap:16px}
+.brand img{width:44px;height:auto;display:block;flex:none}
+.brand span{font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.masthead nav{display:flex;align-items:center;gap:clamp(16px,3vw,28px)}
+.masthead .tel{color:#fff;text-decoration:none;font-size:16px;font-weight:500;white-space:nowrap}
+.masthead .tel:hover{color:var(--amber)}
+.btn-amber{background:var(--amber);color:var(--ink);text-decoration:none;font-size:15px;font-weight:600;padding:11px 20px;white-space:nowrap;display:inline-block}
+.btn-amber:hover{background:var(--amber-deep);color:var(--ink)}
+
+/* --- Hero --- */
+.hero{background:var(--navy);color:#fff}
+.hero .shell{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(36px,5vw,72px);align-items:center;padding-top:clamp(44px,7vw,80px);padding-bottom:clamp(52px,8vw,96px)}
+.hero__rule{width:56px;height:5px;background:var(--amber)}
+.hero h1{font-size:clamp(34px,6.6vw,60px);font-weight:700;line-height:1.05;letter-spacing:-.03em;margin-top:28px;max-width:20ch;text-wrap:balance}
+.hero__lede{font-size:clamp(18px,2.4vw,21px);line-height:1.5;color:rgba(255,255,255,.78);margin-top:22px;max-width:48ch;text-wrap:pretty}
+.proof{display:flex;flex-wrap:wrap;gap:28px 40px;margin-top:44px;padding:0;list-style:none}
+.proof li{border-top:2px solid rgba(255,255,255,.3);padding-top:14px;max-width:20ch}
+.proof li:first-child{border-top-color:var(--amber)}
+.proof b{display:block;font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.proof li:first-child b{color:var(--amber)}
+.proof span{display:block;font-size:16px;line-height:1.5;color:rgba(255,255,255,.75);margin-top:6px}
+.hero__mark{width:100%;max-width:clamp(150px,24vw,260px);height:auto;display:block;margin:0 auto}
+
+/* --- Form --- */
+.formwrap{background:var(--mist);padding:clamp(44px,7vw,80px) clamp(14px,4vw,48px) clamp(52px,8vw,96px)}
+.card{max-width:760px;margin:0 auto;background:var(--paper);border:1px solid var(--rule);padding:clamp(24px,5vw,56px)}
+.kicker{font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--navy)}
+.card h2{font-size:clamp(26px,4.6vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.12;margin-top:14px;text-wrap:balance}
+.card__lede{font-size:17px;line-height:1.6;color:var(--slate);margin-top:14px;max-width:56ch}
+
+.internal{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;background:var(--mist);border-left:3px solid var(--navy);padding:14px 18px;margin-top:28px}
+.internal b{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--navy)}
+.internal label{font-size:15px;font-weight:600;color:var(--navy)}
+.internal input{max-width:220px;padding:10px 12px;font-size:16px}
+.again{background:none;border:1px solid var(--navy);color:var(--navy);font-family:inherit;font-size:16px;font-weight:600;padding:14px 24px;margin-top:28px;cursor:pointer}
+.again:hover{background:var(--navy);color:#fff}
+
+.step{display:flex;align-items:center;gap:12px;margin-top:48px;padding-bottom:14px;border-bottom:2px solid var(--navy)}
+.step::before{content:"";width:10px;height:10px;background:var(--amber);flex:none}
+.step span{font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--navy)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-top:28px}
+.grid--tight{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+label.field{display:block;font-size:15px;font-weight:600;color:var(--navy);margin-bottom:8px}
+input[type=text],input[type=tel],input[type=email],input[type=number],input[type=date],textarea{
+  width:100%;font-family:inherit;font-size:17px;color:var(--ink);background:var(--paper);
+  border:1px solid var(--rule);border-radius:0;padding:14px 16px;
+}
+input[type=date]{padding:13px 16px}
+textarea{line-height:1.5;resize:vertical}
+input:focus,textarea:focus{border-color:var(--navy);outline:2px solid var(--amber);outline-offset:-1px}
+input[aria-invalid="true"],textarea[aria-invalid="true"]{border-color:var(--danger)}
+
+fieldset{border:0;padding:0;margin:32px 0 0}
+legend{font-size:15px;font-weight:600;color:var(--navy);padding:0;margin-bottom:12px}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.choice{display:flex;align-items:center;gap:14px;border:1px solid var(--rule);padding:16px;font-size:17px;cursor:pointer}
+.choice:hover{border-color:var(--navy);background:var(--mist)}
+.choice:has(input:checked){border-color:var(--navy);background:var(--mist);box-shadow:inset 0 0 0 1px var(--navy)}
+.choice:has(input:focus-visible){outline:2px solid var(--amber);outline-offset:2px}
+.choice--wide{grid-column:1 / -1}
+input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;margin:0}
+
+/* Conditional follow-ups, revealed by JS. */
+.followup{border-left:3px solid var(--amber);padding:20px 0 0 clamp(14px,3vw,24px);margin-top:16px}
+.followup[hidden]{display:none}
+.followup--grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px}
+.money{display:flex;align-items:center;border:1px solid var(--rule);max-width:320px}
+.money:focus-within{border-color:var(--navy)}
+.money span{font-size:17px;color:var(--slate);padding:14px 0 14px 16px}
+.money input{flex:1;min-width:0;border:0;background:transparent;padding:14px 16px 14px 8px}
+.money input:focus{outline:2px solid var(--amber);outline-offset:-1px;border:0}
+
+.hint{font-size:16px;line-height:1.55;color:var(--slate);margin-bottom:12px;max-width:60ch}
+.err{display:block;font-size:14px;font-weight:500;color:var(--danger);margin-top:8px}
+.err[hidden]{display:none}
+
+/* Honeypot - hidden from people, visible to naive bots. */
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+.actions{border-top:1px solid var(--rule);margin-top:48px;padding-top:32px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px 32px}
+.privacy{font-size:15px;line-height:1.55;color:var(--slate);max-width:38ch}
+.submit{background:var(--amber);color:var(--ink);border:0;border-radius:0;font-family:inherit;font-size:18px;font-weight:600;padding:18px 32px;cursor:pointer;white-space:nowrap}
+.submit:hover{background:var(--amber-deep)}
+.submit[disabled]{opacity:.55;cursor:progress}
+.formerr{margin-top:20px;border-left:3px solid var(--danger);background:#FBF0EF;padding:14px 18px;font-size:16px;line-height:1.55;color:var(--ink)}
+.formerr[hidden]{display:none}
+
+/* Success panel replaces the form after a good submit. */
+.done{max-width:760px;margin:0 auto;background:var(--paper);border:1px solid var(--rule);border-top:5px solid var(--amber);padding:clamp(28px,5vw,56px)}
+.done[hidden]{display:none}
+.done h2{font-size:clamp(26px,4.6vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.12;margin-top:14px}
+.done p{font-size:17px;line-height:1.6;color:var(--slate);margin-top:16px;max-width:56ch}
+.done dl{display:grid;grid-template-columns:auto 1fr;gap:8px 20px;margin:28px 0 0;font-size:16px}
+.done dt{font-weight:600;color:var(--navy)}
+.done dd{margin:0;color:var(--slate)}
+
+.callout{max-width:760px;margin:24px auto 0;font-size:16px;line-height:1.6;color:var(--slate);text-align:center}
+
+/* --- Footer --- */
+.colophon{background:var(--navy);color:#fff}
+.colophon .shell{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px 32px;padding-top:clamp(28px,5vw,48px);padding-bottom:clamp(28px,5vw,48px)}
+.colophon__id{display:flex;align-items:center;gap:20px}
+.colophon__id img{width:56px;height:auto;display:block;flex:none}
+.colophon p{font-size:15px;line-height:1.5;color:rgba(255,255,255,.7)}
+.colophon a{color:var(--amber)}
+</style>
+</head>
+<body>
+<a class="skip" href="#quote">Skip to the quote form</a>
+
+<header class="masthead">
+  <div class="shell">
+    <div class="brand">
+      <img src="assets/elite-insurance-beyond-logo.png" alt="Elite Insurance &amp; Beyond">
+      <span>Elite Insurance &amp; Beyond</span>
+    </div>
+    <nav>
+      <a class="tel" href="tel:+13058771017">305-877-1017</a>
+      <a class="btn-amber" href="#quote">Get a quote</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="shell">
+    <div>
+      <div class="hero__rule"></div>
+      <h1>Property insurance, quoted right the first time</h1>
+      <p class="hero__lede">Tell us about the building and what you have now. We come back with options from the carriers that actually write your class of property &mdash; not a form letter.</p>
+      <ul class="proof">
+        <li><b>Same day</b><span>Most requests answered the same business day.</span></li>
+        <li><b>16+ states</b><span>Licensed in Florida and across the Southeast.</span></li>
+        <li><b>One agent</b><span>A licensed agent, on a direct line. No call center.</span></li>
+      </ul>
+    </div>
+    <img class="hero__mark" src="assets/elite-insurance-beyond-logo.png" alt="">
+  </div>
+</section>
+
+<section class="formwrap">
+  <form id="quote-form" class="card" method="post" novalidate>
+
+    <div class="kicker">Quote request</div>
+    <h2>Nine questions, about four minutes</h2>
+    <p class="card__lede">Answer what you know. Anything you&rsquo;re unsure about, leave blank and we&rsquo;ll track it down.</p>
+
+    <div class="internal">
+      <b>Internal</b>
+      <label for="taken_by">Taken by</label>
+      <input id="taken_by" name="taken_by" type="text" placeholder="Your name" autocomplete="off" required>
+    </div>
+
+    <p class="step"><span>01 &nbsp;/&nbsp; Contact</span></p>
+    <div class="grid">
+      <div>
+        <label class="field" for="first_name">First name</label>
+        <input id="first_name" name="first_name" type="text" autocomplete="given-name" required>
+      </div>
+      <div>
+        <label class="field" for="last_name">Last name</label>
+        <input id="last_name" name="last_name" type="text" autocomplete="family-name" required>
+      </div>
+      <div>
+        <label class="field" for="phone">Phone</label>
+        <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="Your best number" required>
+      </div>
+      <div>
+        <label class="field" for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required>
+      </div>
+    </div>
+
+    <p class="step"><span>02 &nbsp;/&nbsp; Property</span></p>
+    <div class="grid grid--tight">
+      <div>
+        <label class="field" for="property_address">Property address</label>
+        <input id="property_address" name="property_address" type="text" autocomplete="street-address" placeholder="Street, city, state, ZIP" required>
+      </div>
+      <div>
+        <label class="field" for="unit_count">Number of units</label>
+        <input id="unit_count" name="unit_count" type="number" min="1" step="1" inputmode="numeric" required>
+      </div>
+    </div>
+
+    <fieldset>
+      <legend>Occupancy</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="occupancy" value="100% tenant occupied" required><span>100% tenant occupied</span></label>
+        <label class="choice"><input type="radio" name="occupancy" value="Partially occupied"><span>Partially occupied</span></label>
+        <label class="choice"><input type="radio" name="occupancy" value="Owner occupied"><span>Owner occupied</span></label>
+        <label class="choice"><input type="radio" name="occupancy" value="Vacant"><span>Vacant</span></label>
+        <label class="choice choice--wide"><input type="radio" name="occupancy" value="Under renovation"><span>Under renovation</span></label>
+      </div>
+    </fieldset>
+
+    <p class="step"><span>03 &nbsp;/&nbsp; Financing</span></p>
+    <fieldset>
+      <legend>Does the property have a mortgage?</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="has_mortgage" value="Yes"><span>Yes</span></label>
+        <label class="choice"><input type="radio" name="has_mortgage" value="No"><span>No</span></label>
+      </div>
+    </fieldset>
+    <div class="followup" id="loan-followup" hidden>
+      <label class="field" for="loan_amount">Current loan amount</label>
+      <div class="money">
+        <span aria-hidden="true">$</span>
+        <input id="loan_amount" name="loan_amount" type="text" inputmode="numeric" placeholder="0" aria-label="Current loan amount in dollars">
+      </div>
+    </div>
+
+    <p class="step"><span>04 &nbsp;/&nbsp; Current insurance</span></p>
+    <fieldset>
+      <legend>Is the property currently insured?</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="currently_insured" value="Yes"><span>Yes</span></label>
+        <label class="choice"><input type="radio" name="currently_insured" value="No"><span>No</span></label>
+      </div>
+    </fieldset>
+    <div class="followup followup--grid" id="insurer-followup" hidden>
+      <div>
+        <label class="field" for="current_carrier">Current insurance company</label>
+        <input id="current_carrier" name="current_carrier" type="text" placeholder="If you know it">
+      </div>
+      <div>
+        <label class="field" for="renewal_date">Renewal date</label>
+        <input id="renewal_date" name="renewal_date" type="date">
+      </div>
+    </div>
+
+    <p class="step"><span>05 &nbsp;/&nbsp; What you&rsquo;re after</span></p>
+    <fieldset>
+      <legend>What are you looking for?</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="goal" value="Lower premium" required><span>Lower premium</span></label>
+        <label class="choice"><input type="radio" name="goal" value="Better coverage"><span>Better coverage</span></label>
+        <label class="choice"><input type="radio" name="goal" value="New policy"><span>New policy</span></label>
+        <label class="choice"><input type="radio" name="goal" value="Non-renewal"><span>Non-renewal</span></label>
+        <label class="choice choice--wide"><input type="radio" name="goal" value="Just comparing"><span>Just comparing</span></label>
+      </div>
+    </fieldset>
+
+    <p class="step"><span>06 &nbsp;/&nbsp; Anything else</span></p>
+    <div style="margin-top:28px">
+      <label class="field" for="additional_info">Additional information</label>
+      <p class="hint">Roof age, recent claims, prior losses, updates to plumbing or electrical, a deadline you&rsquo;re working against &mdash; anything that helps us quote it accurately.</p>
+      <textarea id="additional_info" name="additional_info" rows="5"></textarea>
+    </div>
+
+    <div class="hp" aria-hidden="true">
+      <label for="company_website">Company website</label>
+      <input id="company_website" name="company_website" type="text" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="actions">
+      <p class="privacy">We use this only to prepare your quote. No spam, and we don&rsquo;t sell your information.</p>
+      <button class="submit" type="submit" id="submit-btn">Send my quote request</button>
+    </div>
+    <p class="formerr" id="form-error" role="alert" hidden></p>
+  </form>
+
+  <div class="done" id="done" role="status" hidden>
+    <div class="kicker">Request received</div>
+    <h2>Thanks &mdash; we have it.</h2>
+    <p id="done-msg">A licensed agent will be in touch. Most requests are answered the same business day.</p>
+    <dl>
+      <dt>Reference</dt><dd id="done-ref">&mdash;</dd>
+      <dt>Taken by</dt><dd id="done-by">&mdash;</dd>
+    </dl>
+    <button class="again" type="button" id="again-btn">Log another request</button>
+  </div>
+
+  <p class="callout">Would rather talk it through? Call <a href="tel:+13058771017">305-877-1017</a> and ask for a licensed agent.</p>
+</section>
+
+<footer class="colophon">
+  <div class="shell">
+    <div class="colophon__id">
+      <img src="assets/elite-insurance-beyond-logo.png" alt="">
+      <p>Elite Insurance &amp; Beyond<br>Insurance &amp; Beyond LLC &nbsp;/&nbsp; Medley, FL</p>
+    </div>
+    <p><a href="https://insbeyond.com">insbeyond.com</a><br>Licensed in Florida and 16+ states</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------
+  // Paste the Apps Script Web App URL here after deploying it.
+  // See apps-script/Code.gs and SETUP.md.
+  // ---------------------------------------------------------------
+  var ENDPOINT = '';
+
+  var form = document.getElementById('quote-form');
+  var donePanel = document.getElementById('done');
+  var formError = document.getElementById('form-error');
+  var submitBtn = document.getElementById('submit-btn');
+  var loadedAt = Date.now();
+
+  // --- Conditional follow-ups -----------------------------------
+  function wireReveal(radioName, panelId) {
+    var panel = document.getElementById(panelId);
+    form.querySelectorAll('input[name="' + radioName + '"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        var show = radio.checked && radio.value === 'Yes';
+        panel.hidden = !show;
+        if (!show) {
+          panel.querySelectorAll('input').forEach(function (el) { el.value = ''; });
+        }
+      });
+    });
+  }
+  wireReveal('has_mortgage', 'loan-followup');
+  wireReveal('currently_insured', 'insurer-followup');
+
+  // --- Remember the caller across calls -------------------------
+  var takenBy = document.getElementById('taken_by');
+  var STORE_KEY = 'eib_taken_by';
+  try {
+    var saved = localStorage.getItem(STORE_KEY);
+    if (saved) takenBy.value = saved;
+  } catch (ignore) {}
+  takenBy.addEventListener('change', function () {
+    try { localStorage.setItem(STORE_KEY, takenBy.value.trim()); } catch (ignore) {}
+  });
+
+  // --- Reset for the next call ----------------------------------
+  document.getElementById('again-btn').addEventListener('click', function () {
+    var keep = takenBy.value;
+    form.reset();
+    takenBy.value = keep;
+    document.getElementById('loan-followup').hidden = true;
+    document.getElementById('insurer-followup').hidden = true;
+    clearInvalid();
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send my quote request';
+    donePanel.hidden = true;
+    form.hidden = false;
+    loadedAt = Date.now();
+    document.getElementById('first_name').focus();
+    form.scrollIntoView({ block: 'start' });
+  });
+
+  // --- Loan amount: digits only, with thousands separators ------
+  var loan = document.getElementById('loan_amount');
+  loan.addEventListener('input', function () {
+    var digits = loan.value.replace(/\D/g, '').slice(0, 12);
+    loan.value = digits ? Number(digits).toLocaleString('en-US') : '';
+  });
+
+  // --- Validation ----------------------------------------------
+  function clearInvalid() {
+    form.querySelectorAll('[aria-invalid]').forEach(function (el) {
+      el.removeAttribute('aria-invalid');
+    });
+    formError.hidden = true;
+    formError.textContent = '';
+  }
+
+  function firstInvalid() {
+    var fields = form.querySelectorAll('input, textarea');
+    for (var i = 0; i < fields.length; i++) {
+      if (!fields[i].checkValidity()) return fields[i];
+    }
+    return null;
+  }
+
+  function labelFor(el) {
+    if (el.type === 'radio') {
+      var legend = el.closest('fieldset') && el.closest('fieldset').querySelector('legend');
+      return legend ? legend.textContent.trim().replace(/\?$/, '') : 'a required choice';
+    }
+    var lab = form.querySelector('label[for="' + el.id + '"]');
+    return lab ? lab.textContent.trim() : 'a required field';
+  }
+
+  function fail(message) {
+    formError.textContent = message;
+    formError.hidden = false;
+    formError.scrollIntoView({ block: 'center' });
+  }
+
+  // --- Payload --------------------------------------------------
+  function collect() {
+    var data = {};
+    new FormData(form).forEach(function (value, key) {
+      var v = String(value).trim();
+      if (v) data[key] = v;
+    });
+    data.loan_amount = data.loan_amount ? data.loan_amount.replace(/,/g, '') : '';
+    data.page_url = location.href;
+    data.elapsed_ms = Date.now() - loadedAt;
+    data.submitted_at = new Date().toISOString();
+    return data;
+  }
+
+  // --- Submit ---------------------------------------------------
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    clearInvalid();
+
+    // Honeypot: a real person never fills this.
+    if (form.company_website.value) return;
+
+    var bad = firstInvalid();
+    if (bad) {
+      bad.setAttribute('aria-invalid', 'true');
+      fail('Please complete ' + labelFor(bad).toLowerCase() + ' before sending.');
+      bad.focus();
+      return;
+    }
+
+    var payload = collect();
+
+    if (!ENDPOINT) {
+      fail('This form is not connected yet. Add the Apps Script URL to ENDPOINT in index.html.');
+      console.warn('Quote request payload (not sent):', payload);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+
+    // text/plain keeps this a "simple" request, so the browser does not
+    // send a CORS preflight - Apps Script cannot answer one.
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (result) {
+        if (!result || result.ok !== true) throw new Error((result && result.error) || 'Unknown error');
+        document.getElementById('done-ref').textContent = result.ref || '—';
+        document.getElementById('done-by').textContent = payload.taken_by || '—';
+        form.hidden = true;
+        donePanel.hidden = false;
+        donePanel.scrollIntoView({ block: 'start' });
+      })
+      .catch(function (err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send my quote request';
+        fail('We could not send that. Please try again, or call 305-877-1017 and we will take it over the phone.');
+        console.error(err);
+      });
+  });
+})();
+</script>
+</body>
+</html>

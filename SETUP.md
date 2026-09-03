@@ -1,0 +1,108 @@
+# Commercial property quote intake — setup
+
+An **internal tool**. A caller opens it during a call with a Fausto Commercial lead,
+takes the answers, and submits. Each submission lands as a row in a Google Sheet and
+as a formatted email to the quote desk.
+
+Not indexed and not linked from anywhere: `robots.txt` blocks all crawlers and the
+page carries `noindex`. Remove both only if it ever becomes a public lead-gen page.
+
+```
+Caller's browser  ──POST JSON──▶  Apps Script Web App  ──▶  Google Sheet (row)
+                                                       └──▶  quote@insbeyond.com
+```
+
+No server, no subscription, no third-party form service.
+
+## 1. Google Sheet + Apps Script
+
+1. Create a Google Sheet named **EIB — Property Quote Requests**.
+   Do this from a Workspace account **@insbeyond.com** — the notification is sent by
+   whoever owns the script, so a personal Gmail would send from that Gmail.
+2. **Extensions → Apps Script**.
+3. Delete the starter code, paste all of `apps-script/Code.gs`, save.
+4. Adjust `CONFIG` at the top if needed (`NOTIFY_TO`, `NOTIFY_CC`, `PHONE`).
+5. **Deploy → New deployment → Web app**
+   - **Execute as: Me**
+   - **Who has access: Anyone**  ← must be "Anyone", *not* "Anyone with a Google account"
+6. Authorize. You will see an "unverified app" warning — it is your own script.
+   Advanced → Go to project → Allow.
+7. Copy the **Web app URL**. It ends in `/exec`.
+
+The `Leads` tab and its header row are created automatically on the first submission.
+
+## 2. Connect the page
+
+In `index.html`:
+
+```js
+var ENDPOINT = '';
+```
+
+Paste the `/exec` URL between the quotes. That is the only edit needed.
+
+Until it is set the form still validates and demos correctly — it just reports that
+it is not connected and logs the payload to the console.
+
+## 3. Publish on GitHub Pages
+
+The local git repo is already initialised with the first commit. Create an empty
+repo on GitHub (no README, no .gitignore), then:
+
+```bash
+cd "c:/Claude/Elite Insurance and Beyond/quote-landing"
+git remote add origin https://github.com/<account>/<repo>.git
+git push -u origin main
+```
+
+**Settings → Pages → Source: Deploy from a branch → main / (root)**.
+Live at `https://<account>.github.io/<repo>/` in about a minute.
+
+A private repo works too, but GitHub Pages on a private repo needs a paid plan. For a
+public repo, remember the page source is public — which is fine, there are no secrets
+in it, but do not paste anything sensitive into the HTML.
+
+### Later: custom domain
+
+1. Add a file named `CNAME` containing `quote.insbeyond.com`.
+2. At Hostinger (where insbeyond.com's DNS lives): `CNAME  quote → <account>.github.io`
+3. **Settings → Pages → Custom domain**, then **Enforce HTTPS** once the cert issues.
+
+## 4. How the caller uses it
+
+- **Taken by** sits at the top in a marked "Internal" strip. It is required, and the
+  browser remembers it, so each caller types their name once on their own machine.
+- Follow-up questions appear only when relevant: loan amount when there is a mortgage,
+  carrier and renewal date when the property is already insured.
+- After a successful submit the form is replaced by a confirmation showing the
+  reference number and who took it, with a **Log another request** button that clears
+  everything except the caller's name and focuses the first field for the next call.
+
+## 5. Test it
+
+1. Fill it in and submit. Check the new sheet row and the email at `quote@insbeyond.com`.
+2. Submit with a required field blank — it should refuse and focus that field.
+3. Reply to the notification email — it should address the lead, not the script owner.
+4. Click **Log another request** — the form should clear but keep your name.
+
+## Things that will bite you
+
+- **`quote@insbeyond.com` may not exist.** The site publishes `info@` and `coi@` only.
+  Create the alias before go-live or mail bounces silently.
+- **Do not change the request to `application/json`.** That triggers a CORS preflight,
+  which Apps Script cannot answer, and every submission fails. The page sends
+  `text/plain` with a JSON body on purpose.
+- **Re-deploy after editing the script.** Deploy → Manage deployments → edit the
+  existing one → Version: New version. Saving code alone changes nothing live.
+- **Mail quota**: 100 recipients/day on consumer Gmail, 1,500/day on Workspace.
+- **The sheet holds lead PII** — names, phones, emails, property addresses, loan
+  amounts. Share it with named people only, never "anyone with the link".
+
+## Spam
+
+Because this is caller-operated and unlisted, no CAPTCHA is needed. Two quiet defences
+ship anyway, in case the URL leaks: a hidden honeypot field, and a speed trap that
+ignores anything submitted in under 3 seconds. Both fail silently.
+
+If it ever goes public, add Cloudflare Turnstile — free, invisible to real users, about
+15 lines across `index.html` and `Code.gs`.
