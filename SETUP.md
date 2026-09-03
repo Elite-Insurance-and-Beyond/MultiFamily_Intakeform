@@ -94,6 +94,16 @@ source code, not about who can open the page. The page stays unlisted through
   reference number and who took it, with a **Log another request** button that clears
   everything except the caller's name and focuses the first field for the next call.
 
+## What the notification looks like
+
+Two rendered examples live in `apps-script/preview/` — open either in a browser:
+
+- `example-full.html` — every question answered, with notes
+- `example-sparse.html` — no mortgage, no current coverage, no notes
+
+They are generated from `buildHtml_()` in `Code.gs`, so they are the real output, not
+a mockup. Regenerate them after changing the template if you want them to stay honest.
+
 ## 5. Test it
 
 1. Fill it in and submit. Check the new sheet row and the email at `quote@insbeyond.com`.
