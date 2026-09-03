@@ -46,21 +46,37 @@ it is not connected and logs the payload to the console.
 
 ## 3. Publish on GitHub Pages
 
-The local git repo is already initialised with the first commit. Create an empty
-repo on GitHub (no README, no .gitignore), then:
+Repo: **https://github.com/Elite-Insurance-and-Beyond/MultiFamily_Intakeform**
+The remote is already set and `main` is pushed.
 
 ```bash
 cd "c:/Claude/Elite Insurance and Beyond/quote-landing"
-git remote add origin https://github.com/<account>/<repo>.git
-git push -u origin main
+git push            # after any later change
 ```
 
-**Settings → Pages → Source: Deploy from a branch → main / (root)**.
-Live at `https://<account>.github.io/<repo>/` in about a minute.
+**Settings → Pages → Source: Deploy from a branch → main / (root) → Save.**
+The branch dropdown is empty until something has been pushed — that is the only
+reason it would show nothing.
 
-A private repo works too, but GitHub Pages on a private repo needs a paid plan. For a
-public repo, remember the page source is public — which is fine, there are no secrets
-in it, but do not paste anything sensitive into the HTML.
+Live at:
+`https://elite-insurance-and-beyond.github.io/MultiFamily_Intakeform/`
+
+### If Pages asks you to upgrade
+
+The repo is **private**, and GitHub Pages on a private repo needs a paid plan
+(Team or Enterprise for an organisation). On the free plan you have three ways out:
+
+1. **Make the repo public** — recommended. There is nothing secret in it. The page
+   source, including the Apps Script URL, is served to every visitor anyway, so a
+   public repo leaks nothing a public site would not. Settings → General → Danger
+   Zone → Change visibility.
+2. **Upgrade the org to GitHub Team.**
+3. **Host on Cloudflare Pages or Netlify instead** — both serve a private repo on
+   their free tier. Connect the repo, build command none, output directory `/`.
+
+Note that Pages makes the *site* public in every case. Repo visibility is about the
+source code, not about who can open the page. The page stays unlisted through
+`robots.txt` and `noindex` regardless.
 
 ### Later: custom domain
 
