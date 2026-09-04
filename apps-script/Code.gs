@@ -19,7 +19,7 @@ var CONFIG = {
   SUBJECT_PREFIX: 'Property quote request',
   PHONE: '305-877-1017',
   BRAND_URL: 'https://insbeyond.com',
-  LOGO_URL: '',                        // optional absolute URL to the crest PNG
+  LOGO_URL: '',                        // fallback only; the crest is normally embedded (see Logo.gs)
   MIN_ELAPSED_MS: 3000,                // faster than this is almost certainly a bot
   SEND_LEAD_RECEIPT: false             // set true to also confirm to the lead
 };
@@ -161,15 +161,36 @@ function sendNotification_(data, ref, now) {
   var name = (data.first_name + ' ' + data.last_name).trim();
   var subject = CONFIG.SUBJECT_PREFIX + ': ' + name + ' — ' + (data.property_address || '');
 
-  MailApp.sendEmail({
+  var logo = logoBlob_();
+  var options = {
     to: CONFIG.NOTIFY_TO,
     cc: CONFIG.NOTIFY_CC || undefined,
     replyTo: data.email,
     name: CONFIG.FROM_NAME,
     subject: subject.slice(0, 200),
-    htmlBody: buildHtml_(data, ref, now),
+    htmlBody: buildHtml_(data, ref, now, !!logo),
     body: buildText_(data, ref, now)
-  });
+  };
+  if (logo) options.inlineImages = { eibcrest: logo };
+  MailApp.sendEmail(options);
+}
+
+/**
+ * The crest travels with the message as an inline attachment, so it renders
+ * even in clients that block remote images. Falls back to CONFIG.LOGO_URL,
+ * then to no image at all - a missing logo must never block a lead.
+ */
+function logoBlob_() {
+  try {
+    if (typeof LOGO_B64 === 'string' && LOGO_B64) {
+      return Utilities
+        .newBlob(Utilities.base64Decode(LOGO_B64), 'image/png', 'crest.png')
+        .setName('crest.png');
+    }
+  } catch (err) {
+    console.warn('Crest unavailable, sending without it: ' + err);
+  }
+  return null;
 }
 
 function sendReceipt_(data, ref) {
@@ -186,7 +207,7 @@ function sendReceipt_(data, ref) {
   });
 }
 
-function buildHtml_(data, ref, now) {
+function buildHtml_(data, ref, now, hasInlineLogo) {
   var name = esc_((data.first_name + ' ' + data.last_name).trim());
   var stamp = Utilities.formatDate(now, Session.getScriptTimeZone(), "EEEE, MMMM d, yyyy 'at' h:mm a");
 
@@ -212,8 +233,10 @@ function buildHtml_(data, ref, now) {
            'font:400 16px/1.6 ' + BRAND.font + ';color:' + BRAND.ink + ';white-space:pre-wrap;">' + esc_(notes) + '</div>' +
     '</td></tr>' : '';
 
-  var mark = CONFIG.LOGO_URL
-    ? '<img src="' + esc_(CONFIG.LOGO_URL) + '" width="44" alt="" style="display:block;border:0;">'
+  var logoSrc = hasInlineLogo ? 'cid:eibcrest' : (CONFIG.LOGO_URL || '');
+  var mark = logoSrc
+    ? '<img src="' + esc_(logoSrc) + '" width="44" height="55" alt="" ' +
+      'style="display:block;border:0;outline:none;text-decoration:none;">'
     : '';
 
   return '' +

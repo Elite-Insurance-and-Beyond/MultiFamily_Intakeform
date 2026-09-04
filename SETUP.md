@@ -21,6 +21,9 @@ No server, no subscription, no third-party form service.
    whoever owns the script, so a personal Gmail would send from that Gmail.
 2. **Extensions → Apps Script**.
 3. Delete the starter code, paste all of `apps-script/Code.gs`, save.
+   Then **File → + → Script**, name it `Logo`, and paste all of `apps-script/Logo.gs`.
+   Both files share one global scope; `Logo.gs` holds only the base64 crest so
+   `Code.gs` stays readable.
 4. Adjust `CONFIG` at the top if needed (`NOTIFY_TO`, `NOTIFY_CC`, `PHONE`).
 5. **Deploy → New deployment → Web app**
    - **Execute as: Me**
@@ -93,6 +96,12 @@ source code, not about who can open the page. The page stays unlisted through
 - After a successful submit the form is replaced by a confirmation showing the
   reference number and who took it, with a **Log another request** button that clears
   everything except the caller's name and focuses the first field for the next call.
+
+## Updating the script later
+
+**Editing code does nothing live until you re-deploy.**
+Deploy → Manage deployments → pencil icon → Version: **New version** → Deploy.
+The `/exec` URL stays the same, so `index.html` never needs touching again.
 
 ## What the notification looks like
 
