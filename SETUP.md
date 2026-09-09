@@ -87,6 +87,29 @@ source code, not about who can open the page. The page stays unlisted through
 2. At Hostinger (where insbeyond.com's DNS lives): `CNAME  quote → <account>.github.io`
 3. **Settings → Pages → Custom domain**, then **Enforce HTTPS** once the cert issues.
 
+## Authorising the script
+
+Apps Script decides which permissions to request by reading your code **at the moment
+you approve it**. The county lookup was added after the script was first authorised,
+so the "connect to an external service" permission was never granted. The symptom is:
+
+> You do not have permission to call UrlFetchApp.fetch.
+> Required permissions: https://www.googleapis.com/auth/script.external_request
+
+It is not a code fault and re-deploying alone will not clear it. Fix:
+
+1. In the Apps Script editor, choose **authorize** from the function dropdown at the
+   top of the screen.
+2. Press **Run**. Approve the prompts - including "Connect to an external service".
+   You will see an "unverified app" warning; it is your own script, so
+   Advanced > Go to project > Allow.
+3. Check the Execution log. You want three OK lines: external requests, spreadsheet,
+   and email.
+4. **Deploy > Manage deployments > pencil > Version: New version > Deploy.**
+
+`authorize()` touches all three services in one go, so a single approval covers
+everything. Re-run it any time you add a new Google service to the script.
+
 ## County record lookup
 
 The caller types a Miami-Dade folio and presses **Look up**. The page asks the Apps

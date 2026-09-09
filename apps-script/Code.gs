@@ -351,7 +351,13 @@ function lookupFolio_(rawFolio) {
       { muteHttpExceptions: true, followRedirects: true }
     );
   } catch (err) {
-    return { ok: false, error: 'Could not reach the county record service. ' + err };
+    var msg = String(err);
+    if (msg.indexOf('script.external_request') > -1 || msg.indexOf('permission') > -1) {
+      return { ok: false, error: 'The script is not authorised to make external requests yet. ' +
+        'In the Apps Script editor run the authorize() function once, approve the prompt, ' +
+        'then Deploy > Manage deployments > New version.' };
+    }
+    return { ok: false, error: 'Could not reach the county record service. ' + msg };
   }
   if (res.getResponseCode() !== 200) {
     return { ok: false, error: 'The county record service returned ' + res.getResponseCode() + '.' };
@@ -436,4 +442,47 @@ function parseSales_(list) {
   var qualified = sales.filter(function (s) { return s.qualified; });
 
   return { last: sales[0] || null, lastQualified: qualified[0] || null, count: sales.length };
+}
+
+
+/**
+ * Run this once, by hand, from the Apps Script editor.
+ *
+ * Apps Script works out which permissions it needs by reading the code at the
+ * moment you authorise it. The county lookup was added after this script was
+ * first authorised, so its "connect to an external service" permission was
+ * never granted - which is why UrlFetchApp throws a permission error.
+ *
+ * Running this touches every service the script uses, so one approval covers
+ * all of them. Afterwards: Deploy > Manage deployments > New version.
+ */
+function authorize() {
+  var report = [];
+
+  try {
+    var res = UrlFetchApp.fetch(
+      PA_ENDPOINT + '?Operation=GetPropertySearchByFolio' +
+      '&clientAppName=PropertySearch&folioNumber=0141030120170',
+      { muteHttpExceptions: true }
+    );
+    report.push('External requests: OK (county returned ' + res.getResponseCode() + ')');
+  } catch (err) {
+    report.push('External requests: FAILED - ' + err);
+  }
+
+  try {
+    report.push('Spreadsheet: OK (' + getSheet_().getName() + ')');
+  } catch (err) {
+    report.push('Spreadsheet: FAILED - ' + err);
+  }
+
+  try {
+    report.push('Email: OK (' + MailApp.getRemainingDailyQuota() + ' sends left today)');
+  } catch (err) {
+    report.push('Email: FAILED - ' + err);
+  }
+
+  var out = report.join('\n');
+  console.log(out);
+  return out;
 }

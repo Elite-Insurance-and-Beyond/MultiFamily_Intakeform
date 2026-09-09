@@ -2,16 +2,17 @@
  * ============================================================================
  *  PASTE THIS WHOLE FILE INTO Code.gs AND NOTHING ELSE.
  *
- *  Everything is in here - the intake logic, the county record lookup, the
- *  email template, and the crest image at the bottom. One file, one paste.
- *
  *  1. Open your Google Sheet
  *  2. Extensions > Apps Script
  *  3. Select all the code that is there, delete it, paste this in its place
- *  4. Save (the disk icon, or Ctrl+S)
- *  5. Deploy > Manage deployments > pencil icon > Version: New version > Deploy
+ *  4. Save (Ctrl+S)
+ *  5. Pick "authorize" in the function dropdown at the top and press Run.
+ *     Approve the prompts. This grants the permissions the script needs -
+ *     including the external-request permission the county lookup uses.
+ *  6. Deploy > Manage deployments > pencil icon > Version: New version > Deploy
  *
- *  Step 5 is what makes the change live. Saving alone does nothing.
+ *  Steps 5 and 6 are both required. Saving alone does nothing, and a new
+ *  deployment without step 5 still cannot call out to the county.
  * ============================================================================
  */
 
@@ -368,7 +369,13 @@ function lookupFolio_(rawFolio) {
       { muteHttpExceptions: true, followRedirects: true }
     );
   } catch (err) {
-    return { ok: false, error: 'Could not reach the county record service. ' + err };
+    var msg = String(err);
+    if (msg.indexOf('script.external_request') > -1 || msg.indexOf('permission') > -1) {
+      return { ok: false, error: 'The script is not authorised to make external requests yet. ' +
+        'In the Apps Script editor run the authorize() function once, approve the prompt, ' +
+        'then Deploy > Manage deployments > New version.' };
+    }
+    return { ok: false, error: 'Could not reach the county record service. ' + msg };
   }
   if (res.getResponseCode() !== 200) {
     return { ok: false, error: 'The county record service returned ' + res.getResponseCode() + '.' };
@@ -453,6 +460,49 @@ function parseSales_(list) {
   var qualified = sales.filter(function (s) { return s.qualified; });
 
   return { last: sales[0] || null, lastQualified: qualified[0] || null, count: sales.length };
+}
+
+
+/**
+ * Run this once, by hand, from the Apps Script editor.
+ *
+ * Apps Script works out which permissions it needs by reading the code at the
+ * moment you authorise it. The county lookup was added after this script was
+ * first authorised, so its "connect to an external service" permission was
+ * never granted - which is why UrlFetchApp throws a permission error.
+ *
+ * Running this touches every service the script uses, so one approval covers
+ * all of them. Afterwards: Deploy > Manage deployments > New version.
+ */
+function authorize() {
+  var report = [];
+
+  try {
+    var res = UrlFetchApp.fetch(
+      PA_ENDPOINT + '?Operation=GetPropertySearchByFolio' +
+      '&clientAppName=PropertySearch&folioNumber=0141030120170',
+      { muteHttpExceptions: true }
+    );
+    report.push('External requests: OK (county returned ' + res.getResponseCode() + ')');
+  } catch (err) {
+    report.push('External requests: FAILED - ' + err);
+  }
+
+  try {
+    report.push('Spreadsheet: OK (' + getSheet_().getName() + ')');
+  } catch (err) {
+    report.push('Spreadsheet: FAILED - ' + err);
+  }
+
+  try {
+    report.push('Email: OK (' + MailApp.getRemainingDailyQuota() + ' sends left today)');
+  } catch (err) {
+    report.push('Email: FAILED - ' + err);
+  }
+
+  var out = report.join('\n');
+  console.log(out);
+  return out;
 }
 
 
