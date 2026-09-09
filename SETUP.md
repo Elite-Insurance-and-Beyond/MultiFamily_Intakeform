@@ -87,6 +87,53 @@ source code, not about who can open the page. The page stays unlisted through
 2. At Hostinger (where insbeyond.com's DNS lives): `CNAME  quote → <account>.github.io`
 3. **Settings → Pages → Custom domain**, then **Enforce HTTPS** once the cert issues.
 
+## County record lookup
+
+The caller types a Miami-Dade folio and presses **Look up**. The page asks the Apps
+Script, which calls the Property Appraiser and fills in owner, year built, floors,
+beds/baths/half, living area, adjusted area, lot size, and the sales history. It also
+back-fills property address and unit count in the questions below.
+
+Why it goes through Apps Script rather than straight from the browser: the county
+serves clean JSON but sends **no `Access-Control-Allow-Origin` header**, so a direct
+call from GitHub Pages is blocked. Apps Script has no such restriction. Results are
+cached per folio for 6 hours.
+
+Dashes are optional - `01-4103-012-0170` and `0141030120170` both work.
+
+### Two sales figures, on purpose
+
+The county's most recent sale is very often a quit-claim or intra-family transfer for
+$100, not a purchase. For folio 01-4103-012-0170 the last sale is 1/10/2020 for $100,
+while the last *qualified* (arm's-length) sale is 12/1/1981 for $129,000. Reporting
+either one alone is misleading, so both are captured:
+
+- **Purchase date / price (qualified)** - the last real market price
+- **Last sale of any kind** - when the current owner actually took title
+
+### Sunbiz is a link-out, not an automatic lookup
+
+When the owner's name looks like a company, a panel appears with a pre-filled Sunbiz
+search link and two boxes for the registered agent. The caller opens it, copies the
+name and address across.
+
+This is deliberate. Sunbiz sits behind a Cloudflare JavaScript challenge that returns
+403 to any plain HTTP client - which is exactly what Apps Script is. It cannot be
+automated from here. If this ever needs to be automatic, the route is Florida's own
+bulk data download (`sftp.floridados.gov`, public credentials, quarterly + daily),
+not scraping.
+
+**The search is fuzzy.** Searching one exact LLC name returns ~20 alphabetical
+neighbours. Confirm the entity name matches before copying the agent across.
+
+### Verify the area labels once
+
+The county page shows Actual / Living / Adjusted area, and the API returns four area
+fields. The mapping used here is Living=BuildingHeatedArea, Adjusted=BuildingEffectiveArea.
+For the test folio Actual (2,264) comes back *smaller* than Living (3,720), which is
+backwards from how those usually relate. Put two or three folios side by side with the
+live county page once and confirm before relying on the numbers for rating.
+
 ## 4. How the caller uses it
 
 - **Taken by** sits at the top in a marked "Internal" strip. It is required, and the

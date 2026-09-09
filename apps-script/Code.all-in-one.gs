@@ -2,8 +2,8 @@
  * ============================================================================
  *  PASTE THIS WHOLE FILE INTO Code.gs AND NOTHING ELSE.
  *
- *  Everything is in here - the intake logic, the email template, and the
- *  crest image at the bottom. One file, one paste, no second script needed.
+ *  Everything is in here - the intake logic, the county record lookup, the
+ *  email template, and the crest image at the bottom. One file, one paste.
  *
  *  1. Open your Google Sheet
  *  2. Extensions > Apps Script
@@ -44,6 +44,20 @@ var CONFIG = {
 /** Field order drives both the sheet columns and the email rows. */
 var FIELDS = [
   { key: 'taken_by',          label: 'Taken by',          required: true, emailSkip: true },
+  { key: 'folio',             label: 'Folio' },
+  { key: 'owner_name',        label: 'Owner of record' },
+  { key: 'registered_agent_name',    label: 'Registered agent' },
+  { key: 'registered_agent_address', label: 'Agent address' },
+  { key: 'year_built',        label: 'Year built' },
+  { key: 'floors',            label: 'Floors' },
+  { key: 'beds_baths_half',   label: 'Beds / baths / half' },
+  { key: 'living_area',       label: 'Living area',       sqft: true },
+  { key: 'adjusted_area',     label: 'Adjusted area',     sqft: true },
+  { key: 'lot_size',          label: 'Lot size',          sqft: true },
+  { key: 'purchase_date',     label: 'Purchase date (qualified)' },
+  { key: 'purchase_price',    label: 'Purchase price (qualified)', money: true },
+  { key: 'last_sale_date',    label: 'Last sale of any kind' },
+  { key: 'last_sale_price',   label: 'Last sale price',   money: true },
   { key: 'first_name',        label: 'First name',        required: true, emailSkip: true },
   { key: 'last_name',         label: 'Last name',         required: true, emailSkip: true },
   { key: 'phone',             label: 'Phone',             required: true },
@@ -76,7 +90,9 @@ function json_(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function doGet() {
+function doGet(e) {
+  var op = (e && e.parameter && e.parameter.op) || '';
+  if (op === 'folio') return json_(lookupFolio_((e.parameter.folio || '')));
   return json_({ ok: true, service: 'eib-quote-intake', ts: new Date().toISOString() });
 }
 
@@ -157,6 +173,7 @@ function fmt_(field, value) {
   var v = String(value || '').trim();
   if (!v) return '';
   if (field.money) return '$' + Number(v.replace(/[^0-9.]/g, '')).toLocaleString('en-US');
+  if (field.sqft) return Number(v.replace(/[^0-9.]/g, '')).toLocaleString('en-US') + ' sq ft';
   if (field.date) {
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
     if (m) {
@@ -316,6 +333,126 @@ function buildText_(data, ref, now) {
   });
   lines.push('', 'Received: ' + now.toString(), 'Source: ' + (data.page_url || 'n/a'));
   return lines.join('\n');
+}
+
+
+/* ===========================================================================
+ * County record lookup — Miami-Dade Property Appraiser.
+ *
+ * The county serves clean JSON but sends no CORS header, so the browser
+ * cannot call it directly from GitHub Pages. This proxies it.
+ * ========================================================================= */
+
+var PA_ENDPOINT = 'https://apps.miamidadepa.gov/PApublicServiceProxy/PaServicesProxy.ashx';
+
+/** Names that mean "this owner is a company", so Sunbiz is worth a look. */
+var ENTITY_RE = /\b(L\.?L\.?C\.?|INC\.?|CORP\.?|CORPORATION|LTD\.?|L\.?P\.?|L\.?L\.?P\.?|TRUST|TRUSTEE|COMPANY|PARTNERSHIP|HOLDINGS?|ENTERPRISES?|ASSOCIATES?|ASSOCIATION|FOUNDATION|VENTURES?|GROUP|PROPERTIES|REALTY|INVESTMENTS?)\b/i;
+
+function lookupFolio_(rawFolio) {
+  var folio = String(rawFolio || '').replace(/\D/g, '');
+  if (folio.length !== 13) {
+    return { ok: false, error: 'A Miami-Dade folio is 13 digits. That one has ' + folio.length + '.' };
+  }
+
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get('folio_' + folio);
+  if (cached) {
+    try { return JSON.parse(cached); } catch (ignore) {}
+  }
+
+  var res;
+  try {
+    res = UrlFetchApp.fetch(
+      PA_ENDPOINT + '?Operation=GetPropertySearchByFolio' +
+      '&clientAppName=PropertySearch&folioNumber=' + encodeURIComponent(folio),
+      { muteHttpExceptions: true, followRedirects: true }
+    );
+  } catch (err) {
+    return { ok: false, error: 'Could not reach the county record service. ' + err };
+  }
+  if (res.getResponseCode() !== 200) {
+    return { ok: false, error: 'The county record service returned ' + res.getResponseCode() + '.' };
+  }
+
+  var data;
+  try {
+    // The county serves UTF-8 with a byte-order mark, which breaks JSON.parse.
+    data = JSON.parse(res.getContentText('UTF-8').replace(/^﻿/, ''));
+  } catch (err) {
+    return { ok: false, error: 'The county record service returned something unreadable.' };
+  }
+
+  var info = data.PropertyInfo || {};
+  if (!info.FolioNumber) {
+    return { ok: false, error: 'No property found for folio ' + folio + '.' };
+  }
+
+  var owner = ((data.OwnerInfos || [])[0] || {}).Name || '';
+  var site = (data.SiteAddress || [])[0] || {};
+  var sales = parseSales_(data.SalesInfos);
+  var isEntity = ENTITY_RE.test(owner);
+
+  var out = {
+    ok: true,
+    folio: info.FolioNumber || folio,
+    address: site.Address || '',
+    owner: owner,
+    ownerIsEntity: isEntity,
+    sunbizUrl: isEntity
+      ? 'https://search.sunbiz.org/Inquiry/CorporationSearch/SearchResults' +
+        '?inquiretype=EntityName&searchTerm=' + encodeURIComponent(owner)
+      : '',
+    landUse: info.DORDescription || '',
+    yearBuilt: num_(info.YearBuilt),
+    floors: num_(info.FloorCount),
+    livingUnits: num_(info.UnitCount),
+    beds: num_(info.BedroomCount),
+    baths: num_(info.BathroomCount),
+    halfBaths: Number(info.HalfBathroomCount) || 0,
+    livingArea: num_(info.BuildingHeatedArea),
+    adjustedArea: num_(info.BuildingEffectiveArea),
+    actualArea: num_(info.BuildingActualArea),
+    lotSize: num_(info.LotSize),
+    lastSale: sales.last,
+    lastQualifiedSale: sales.lastQualified,
+    salesCount: sales.count
+  };
+
+  try { cache.put('folio_' + folio, JSON.stringify(out), 21600); } catch (ignore) {}
+  return out;
+}
+
+function num_(v) {
+  var n = Number(v);
+  return (isNaN(n) || n === 0) ? '' : n;
+}
+
+/**
+ * The county returns sales unsorted, and the most recent one is often a
+ * quit-claim for $100 rather than a real purchase. Hand back both the latest
+ * sale of any kind and the latest qualified (arm's-length) one.
+ */
+function parseSales_(list) {
+  var sales = (list || [])
+    .filter(function (s) { return s && s.DateOfSale; })
+    .map(function (s) {
+      var p = String(s.DateOfSale).split('/');
+      return {
+        date: s.DateOfSale,
+        sortKey: p.length === 3
+          ? p[2] + ('0' + p[0]).slice(-2) + ('0' + p[1]).slice(-2)
+          : '00000000',
+        price: Number(s.SalePrice) || 0,
+        qualified: String(s.QualifiedFlag || '').toUpperCase() === 'Q',
+        description: s.QualificationDescription || '',
+        instrument: s.SaleInstrument || ''
+      };
+    });
+
+  sales.sort(function (a, b) { return b.sortKey.localeCompare(a.sortKey); });
+  var qualified = sales.filter(function (s) { return s.qualified; });
+
+  return { last: sales[0] || null, lastQualified: qualified[0] || null, count: sales.length };
 }
 
 

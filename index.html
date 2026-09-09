@@ -73,6 +73,35 @@ a:hover{color:var(--amber-deep)}
 .internal b{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--navy)}
 .internal label{font-size:15px;font-weight:600;color:var(--navy)}
 .internal input{max-width:220px;padding:10px 12px;font-size:16px}
+.record{background:var(--mist);border-left:3px solid var(--navy);padding:18px;margin-top:20px}
+.record__head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.record__head b{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--navy)}
+.record__head span{font-size:13px;color:var(--slate)}
+.record__lookup{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-top:14px}
+.record__lookup > div{flex:1 1 230px}
+.record__lookup label{display:block;font-size:15px;font-weight:600;color:var(--navy);margin-bottom:8px}
+.record__lookup input{width:100%;padding:12px 14px}
+.btn-lookup{background:var(--navy);color:#fff;border:0;font-family:inherit;font-size:16px;font-weight:600;padding:13px 22px;cursor:pointer;white-space:nowrap}
+.btn-lookup:hover{background:var(--navy-deep)}
+.btn-lookup[disabled]{opacity:.55;cursor:progress}
+.record__status{font-size:15px;line-height:1.5;margin-top:12px;color:var(--slate)}
+.record__status:empty{display:none}
+.record__status.is-err{color:var(--danger);font-weight:500}
+.record__status.is-ok{color:var(--navy);font-weight:500}
+.record__data{margin-top:18px;border-top:1px solid var(--rule);padding-top:18px}
+.record__data[hidden]{display:none}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.rgrid + .rgrid{margin-top:14px}
+.rgrid label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--slate);margin-bottom:6px}
+.rgrid input{width:100%;padding:10px 12px;font-size:16px;background:var(--paper)}
+.rsub{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-top:22px}
+.rnote{font-size:14px;line-height:1.55;color:var(--slate);margin:6px 0 12px;max-width:72ch}
+.sunbiz{border-left:3px solid var(--amber);background:var(--paper);padding:16px 18px;margin-top:18px}
+.sunbiz[hidden]{display:none}
+.sunbiz b{display:block;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--navy)}
+.sunbiz p{font-size:15px;line-height:1.55;color:var(--slate);margin-top:8px}
+.sunbiz__link{display:inline-block;margin-top:12px;font-weight:600}
+
 .again{background:none;border:1px solid var(--navy);color:var(--navy);font-family:inherit;font-size:16px;font-weight:600;padding:14px 24px;margin-top:28px;cursor:pointer}
 .again:hover{background:var(--navy);color:#fff}
 
@@ -190,6 +219,61 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
       <b>Internal</b>
       <label for="taken_by">Taken by</label>
       <input id="taken_by" name="taken_by" type="text" placeholder="Your name" autocomplete="off" required>
+    </div>
+
+    <div class="record">
+      <div class="record__head">
+        <b>County record</b>
+        <span>Miami-Dade Property Appraiser</span>
+      </div>
+      <div class="record__lookup">
+        <div>
+          <label for="folio">Folio number</label>
+          <input id="folio" name="folio" type="text" inputmode="numeric" placeholder="01-4103-012-0170" autocomplete="off">
+        </div>
+        <button type="button" class="btn-lookup" id="lookup-btn">Look up</button>
+      </div>
+      <p class="record__status" id="record-status" role="status" aria-live="polite"></p>
+
+      <div class="record__data" id="record-data" hidden>
+        <div class="rgrid" style="grid-template-columns:1fr">
+          <div>
+            <label for="owner_name">Owner of record</label>
+            <input id="owner_name" name="owner_name" type="text" autocomplete="off">
+          </div>
+        </div>
+        <div class="rgrid">
+          <div><label for="year_built">Year built</label><input id="year_built" name="year_built" type="text" autocomplete="off"></div>
+          <div><label for="floors">Floors</label><input id="floors" name="floors" type="text" autocomplete="off"></div>
+          <div><label for="beds_baths_half">Beds / baths / half</label><input id="beds_baths_half" name="beds_baths_half" type="text" autocomplete="off"></div>
+        </div>
+        <div class="rgrid">
+          <div><label for="living_area">Living area (sq ft)</label><input id="living_area" name="living_area" type="text" autocomplete="off"></div>
+          <div><label for="adjusted_area">Adjusted area (sq ft)</label><input id="adjusted_area" name="adjusted_area" type="text" autocomplete="off"></div>
+          <div><label for="lot_size">Lot size (sq ft)</label><input id="lot_size" name="lot_size" type="text" autocomplete="off"></div>
+        </div>
+
+        <p class="rsub">Sales</p>
+        <p class="rnote">The county's most recent sale is often a quit-claim or transfer for a nominal amount, so both are captured. The qualified sale is the last arm&rsquo;s-length price; the last sale is when the current owner took title.</p>
+        <div class="rgrid">
+          <div><label for="purchase_date">Purchase date (qualified)</label><input id="purchase_date" name="purchase_date" type="text" autocomplete="off"></div>
+          <div><label for="purchase_price">Purchase price (qualified)</label><input id="purchase_price" name="purchase_price" type="text" autocomplete="off"></div>
+        </div>
+        <div class="rgrid">
+          <div><label for="last_sale_date">Last sale of any kind</label><input id="last_sale_date" name="last_sale_date" type="text" autocomplete="off"></div>
+          <div><label for="last_sale_price">Last sale price</label><input id="last_sale_price" name="last_sale_price" type="text" autocomplete="off"></div>
+        </div>
+
+        <div class="sunbiz" id="sunbiz" hidden>
+          <b>Owner is a company</b>
+          <p>Open Sunbiz, find the exact entity name, and copy the registered agent across. The search returns near matches alphabetically &mdash; confirm the name matches before using it.</p>
+          <a class="sunbiz__link" id="sunbiz-link" href="#" target="_blank" rel="noopener noreferrer">Search Sunbiz for this owner &rarr;</a>
+          <div class="rgrid" style="margin-top:14px">
+            <div><label for="registered_agent_name">Registered agent name</label><input id="registered_agent_name" name="registered_agent_name" type="text" autocomplete="off"></div>
+            <div><label for="registered_agent_address">Registered agent address</label><input id="registered_agent_address" name="registered_agent_address" type="text" autocomplete="off"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <p class="step"><span>01 &nbsp;/&nbsp; Contact</span></p>
@@ -357,6 +441,96 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
   wireReveal('has_mortgage', 'loan-followup');
   wireReveal('currently_insured', 'insurer-followup');
 
+  // --- County record lookup -------------------------------------
+  var folioInput = document.getElementById('folio');
+  var lookupBtn = document.getElementById('lookup-btn');
+  var recordStatus = document.getElementById('record-status');
+  var recordData = document.getElementById('record-data');
+  var sunbiz = document.getElementById('sunbiz');
+  var sunbizLink = document.getElementById('sunbiz-link');
+
+  function setStatus(msg, kind) {
+    recordStatus.textContent = msg || '';
+    recordStatus.className = 'record__status' + (kind ? ' is-' + kind : '');
+  }
+
+  function put(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.value = (value === 0 || value) ? String(value) : '';
+  }
+
+  function money(n) {
+    return (n === 0 || n) ? '$' + Number(n).toLocaleString('en-US') : '';
+  }
+
+  function fillRecord(r) {
+    put('owner_name', r.owner);
+    put('year_built', r.yearBuilt);
+    put('floors', r.floors);
+    put('beds_baths_half',
+        [r.beds || 0, r.baths || 0, r.halfBaths || 0].join(' / '));
+    put('living_area', r.livingArea);
+    put('adjusted_area', r.adjustedArea);
+    put('lot_size', r.lotSize);
+
+    put('purchase_date', r.lastQualifiedSale ? r.lastQualifiedSale.date : '');
+    put('purchase_price', r.lastQualifiedSale ? money(r.lastQualifiedSale.price) : '');
+    put('last_sale_date', r.lastSale ? r.lastSale.date : '');
+    put('last_sale_price', r.lastSale ? money(r.lastSale.price) : '');
+
+    // These live in the questions below, but the county already answered them.
+    if (r.address) put('property_address', r.address);
+    if (r.livingUnits) put('unit_count', r.livingUnits);
+
+    if (r.ownerIsEntity && r.sunbizUrl) {
+      sunbizLink.href = r.sunbizUrl;
+      sunbiz.hidden = false;
+    } else {
+      sunbiz.hidden = true;
+      put('registered_agent_name', '');
+      put('registered_agent_address', '');
+    }
+    recordData.hidden = false;
+  }
+
+  function lookupFolio() {
+    var folio = folioInput.value.trim();
+    if (!folio) { setStatus('Enter a folio number first.', 'err'); folioInput.focus(); return; }
+    if (!ENDPOINT) { setStatus('Lookup is not connected yet.', 'err'); return; }
+
+    lookupBtn.disabled = true;
+    setStatus('Looking up the county record…');
+
+    fetch(ENDPOINT + '?op=folio&folio=' + encodeURIComponent(folio))
+      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        lookupBtn.disabled = false;
+        if (!r || r.ok !== true || !r.folio) {
+          recordData.hidden = true;
+          setStatus((r && r.error) ||
+            'The backend answered but sent no property record. Re-deploy the Apps Script (new version) and try again.', 'err');
+          return;
+        }
+        folioInput.value = r.folio || folio;
+        fillRecord(r);
+        setStatus(r.address
+          ? 'Found — ' + r.address + (r.landUse ? ' · ' + r.landUse : '')
+          : 'Found.', 'ok');
+      })
+      .catch(function (err) {
+        lookupBtn.disabled = false;
+        recordData.hidden = true;
+        setStatus('Could not reach the county record service. Try again, or fill this in by hand.', 'err');
+        console.error(err);
+      });
+  }
+
+  lookupBtn.addEventListener('click', lookupFolio);
+  // Enter in the folio box looks up; it must not submit the whole form.
+  folioInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); lookupFolio(); }
+  });
+
   // --- Remember the caller across calls -------------------------
   var takenBy = document.getElementById('taken_by');
   var STORE_KEY = 'eib_taken_by';
@@ -375,6 +549,9 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
     takenBy.value = keep;
     document.getElementById('loan-followup').hidden = true;
     document.getElementById('insurer-followup').hidden = true;
+    recordData.hidden = true;
+    sunbiz.hidden = true;
+    setStatus('');
     clearInvalid();
     submitBtn.disabled = false;
     submitBtn.textContent = 'Send my quote request';
