@@ -1,0 +1,18 @@
+/**
+ * ============================================================================
+ *  PASTE THIS WHOLE FILE INTO Code.gs AND NOTHING ELSE.
+ *
+ *  1. Open your Google Sheet
+ *  2. Extensions > Apps Script
+ *  3. Select all the code that is there, delete it, paste this in its place
+ *  4. Save (Ctrl+S)
+ *  5. Pick "authorize" in the function dropdown at the top and press Run.
+ *     Approve the prompts. This grants the permissions the script needs -
+ *     including the external-request permission the county lookup uses.
+ *  6. Deploy > Manage deployments > pencil icon > Version: New version > Deploy
+ *
+ *  Steps 5 and 6 are both required. Saving alone does nothing, and a new
+ *  deployment without step 5 still cannot call out to the county.
+ * ============================================================================
+ */
+

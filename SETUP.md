@@ -197,6 +197,24 @@ not scraping.
 **The search is fuzzy.** Searching one exact LLC name returns ~20 alphabetical
 neighbours. Confirm the entity name matches before copying the agent across.
 
+### When the lookup fails
+
+The panel now names the actual cause instead of blaming the network for
+everything. Each message means something different:
+
+| Message on screen | What went wrong | What to do |
+|---|---|---|
+| Could not reach the lookup service | The browser could not open a connection at all | Check the internet connection |
+| The county lookup timed out | No answer within 20 seconds | Try again; the county service is slow or down |
+| Sent back an error page instead of data | Apps Script answered with HTML, usually because the script threw | Try again in a minute; if it sticks, open the Apps Script execution log |
+| Found the record but could not fill the form | The county answered fine, the page failed to render it | A real bug — report it |
+| A Miami-Dade folio is 13 digits | The folio is malformed | Retype it |
+| No property found for folio ... | The county has no such folio | Check the number |
+
+Every lookup is tried twice before it gives up, with a short pause between,
+so a single transient hiccup fixes itself. The caller sees
+"trying once more..." while that happens.
+
 ### Verify the area labels once
 
 The county page shows Actual / Living / Adjusted area, and the API returns four area

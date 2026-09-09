@@ -426,6 +426,16 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
   // rather than taken from the backend, so the link works without a redeploy.
   var PA_PROPERTY_URL = 'https://apps.miamidadepa.gov/PropertySearch/#/?folio=';
 
+  // The county call goes out through Apps Script, so it can fail three ways that
+  // look identical to a caller. Name them, so the message on screen is true.
+  var LOOKUP_TIMEOUT_MS = 20000;
+  var LOOKUP_TRIES = 2;
+  var LOOKUP_MESSAGES = {
+    network: 'Could not reach the lookup service. Check the connection, then try again or fill this in by hand.',
+    timeout: 'The county lookup timed out. Try again, or fill this in by hand.',
+    badbody: 'The lookup service sent back an error page instead of data. Give it a moment and try again, or fill this in by hand.'
+  };
+
   var ENDPOINT = 'https://script.google.com/macros/s/AKfycbwJytXfhel201TMegLvpJflEkLB-pjZj9Mzn4fVsoRyJtvEAxHAfYe0kFLS2Hxr70khBA/exec';
 
   var form = document.getElementById('quote-form');
@@ -512,6 +522,39 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
     recordData.hidden = false;
   }
 
+  // One attempt. Resolves with the parsed record, or rejects with an Error
+  // carrying .kind so the caller can be told which of the three things went wrong.
+  function fetchFolioOnce(folio) {
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, LOOKUP_TIMEOUT_MS);
+
+    return fetch(ENDPOINT + '?op=folio&folio=' + encodeURIComponent(folio),
+                 ctl ? { signal: ctl.signal } : {})
+      .then(function (res) {
+        return res.text().then(function (body) { return { status: res.status, body: body }; });
+      })
+      .then(function (got) {
+        clearTimeout(timer);
+        try {
+          return JSON.parse(got.body);
+        } catch (parseErr) {
+          // Apps Script serves an HTML error page when the script throws or
+          // Google is having a moment. Transient, so worth one retry.
+          var bad = new Error('Non-JSON response (HTTP ' + got.status + ')');
+          bad.kind = 'badbody';
+          bad.detail = String(got.body).slice(0, 300);
+          throw bad;
+        }
+      })
+      .catch(function (err) {
+        clearTimeout(timer);
+        if (err && err.kind) throw err;
+        var wrapped = new Error(String((err && err.message) || err));
+        wrapped.kind = (err && err.name === 'AbortError') ? 'timeout' : 'network';
+        throw wrapped;
+      });
+  }
+
   function lookupFolio() {
     var folio = folioInput.value.trim();
     if (!folio) { setStatus('Enter a folio number first.', 'err'); folioInput.focus(); return; }
@@ -520,10 +563,17 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
     lookupBtn.disabled = true;
     setStatus('Looking up the county record…');
 
-    fetch(ENDPOINT + '?op=folio&folio=' + encodeURIComponent(folio))
-      .then(function (r) { return r.json(); })
+    function attempt(n) {
+      return fetchFolioOnce(folio).catch(function (err) {
+        if (n >= LOOKUP_TRIES) throw err;
+        setStatus('No answer from the lookup service — trying once more…');
+        return new Promise(function (resolve) { setTimeout(resolve, 1200); })
+          .then(function () { return attempt(n + 1); });
+      });
+    }
+
+    attempt(1)
       .then(function (r) {
-        lookupBtn.disabled = false;
         if (!r || r.ok !== true || !r.folio) {
           recordData.hidden = true;
           recordLinks.hidden = true;
@@ -532,18 +582,28 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
           return;
         }
         folioInput.value = r.folio || folio;
-        fillRecord(r);
+        // Kept out of the fetch chain so a rendering bug never reads as a
+        // network failure.
+        try {
+          fillRecord(r);
+        } catch (renderErr) {
+          recordData.hidden = true;
+          recordLinks.hidden = true;
+          setStatus('Found the record but could not fill the form: ' + renderErr.message, 'err');
+          console.error('fillRecord failed', renderErr);
+          return;
+        }
         setStatus(r.address
           ? 'Found — ' + r.address + (r.landUse ? ' · ' + r.landUse : '')
           : 'Found.', 'ok');
       })
       .catch(function (err) {
-        lookupBtn.disabled = false;
         recordData.hidden = true;
         recordLinks.hidden = true;
-        setStatus('Could not reach the county record service. Try again, or fill this in by hand.', 'err');
-        console.error(err);
-      });
+        setStatus(LOOKUP_MESSAGES[err && err.kind] || LOOKUP_MESSAGES.network, 'err');
+        console.error('folio lookup failed', err, (err && err.detail) || '');
+      })
+      .then(function () { lookupBtn.disabled = false; });
   }
 
   lookupBtn.addEventListener('click', lookupFolio);

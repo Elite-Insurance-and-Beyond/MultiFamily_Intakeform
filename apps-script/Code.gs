@@ -74,9 +74,16 @@ function json_(obj) {
 }
 
 function doGet(e) {
-  var op = (e && e.parameter && e.parameter.op) || '';
-  if (op === 'folio') return json_(lookupFolio_((e.parameter.folio || '')));
-  return json_({ ok: true, service: 'eib-quote-intake', ts: new Date().toISOString() });
+  // Without this, an uncaught throw makes Apps Script serve an HTML error page.
+  // The browser then fails to parse it and the caller is told the county is
+  // unreachable, which sends them chasing the wrong problem.
+  try {
+    var op = (e && e.parameter && e.parameter.op) || '';
+    if (op === 'folio') return json_(lookupFolio_((e.parameter.folio || '')));
+    return json_({ ok: true, service: 'eib-quote-intake', ts: new Date().toISOString() });
+  } catch (err) {
+    return json_({ ok: false, error: 'Lookup failed inside the script: ' + String(err && err.message || err) });
+  }
 }
 
 function doPost(e) {
