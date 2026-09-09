@@ -346,6 +346,14 @@ function buildText_(data, ref, now) {
 
 var PA_ENDPOINT = 'https://apps.miamidadepa.gov/PApublicServiceProxy/PaServicesProxy.ashx';
 
+/**
+ * Deep link to the property's page on the county site. The summary report reads
+ * the folio from "#/?folio=" - the same shape the county's own ComparableSales
+ * link uses. "#/report/summary?folio=" is rejected as an invalid folio, and a
+ * plain "?folio=" query string never populates, so neither of those work.
+ */
+var PA_PROPERTY_URL = 'https://apps.miamidadepa.gov/PropertySearch/#/?folio=';
+
 /** Names that mean "this owner is a company", so Sunbiz is worth a look. */
 var ENTITY_RE = /\b(L\.?L\.?C\.?|INC\.?|CORP\.?|CORPORATION|LTD\.?|L\.?P\.?|L\.?L\.?P\.?|TRUST|TRUSTEE|COMPANY|PARTNERSHIP|HOLDINGS?|ENTERPRISES?|ASSOCIATES?|ASSOCIATION|FOUNDATION|VENTURES?|GROUP|PROPERTIES|REALTY|INVESTMENTS?)\b/i;
 
@@ -402,6 +410,7 @@ function lookupFolio_(rawFolio) {
   var out = {
     ok: true,
     folio: info.FolioNumber || folio,
+    paUrl: PA_PROPERTY_URL + folio,
     address: site.Address || '',
     owner: owner,
     ownerIsEntity: isEntity,

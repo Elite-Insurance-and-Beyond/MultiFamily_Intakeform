@@ -88,6 +88,8 @@ a:hover{color:var(--amber-deep)}
 .record__status:empty{display:none}
 .record__status.is-err{color:var(--danger);font-weight:500}
 .record__status.is-ok{color:var(--navy);font-weight:500}
+.record__links{margin-top:10px;font-size:15px;font-weight:600}
+.record__links[hidden]{display:none}
 .record__data{margin-top:18px;border-top:1px solid var(--rule);padding-top:18px}
 .record__data[hidden]{display:none}
 .rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
@@ -234,6 +236,9 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
         <button type="button" class="btn-lookup" id="lookup-btn">Look up</button>
       </div>
       <p class="record__status" id="record-status" role="status" aria-live="polite"></p>
+      <p class="record__links" id="record-links" hidden>
+        <a id="pa-link" href="#" target="_blank" rel="noopener noreferrer">Open this property on the county site &rarr;</a>
+      </p>
 
       <div class="record__data" id="record-data" hidden>
         <div class="rgrid" style="grid-template-columns:1fr">
@@ -447,6 +452,8 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
   var recordStatus = document.getElementById('record-status');
   var recordData = document.getElementById('record-data');
   var sunbiz = document.getElementById('sunbiz');
+  var recordLinks = document.getElementById('record-links');
+  var paLink = document.getElementById('pa-link');
   var sunbizLink = document.getElementById('sunbiz-link');
 
   function setStatus(msg, kind) {
@@ -490,6 +497,12 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
       put('registered_agent_name', '');
       put('registered_agent_address', '');
     }
+    if (r.paUrl) {
+      paLink.href = r.paUrl;
+      recordLinks.hidden = false;
+    } else {
+      recordLinks.hidden = true;
+    }
     recordData.hidden = false;
   }
 
@@ -507,6 +520,7 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
         lookupBtn.disabled = false;
         if (!r || r.ok !== true || !r.folio) {
           recordData.hidden = true;
+          recordLinks.hidden = true;
           setStatus((r && r.error) ||
             'The backend answered but sent no property record. Re-deploy the Apps Script (new version) and try again.', 'err');
           return;
@@ -520,6 +534,7 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
       .catch(function (err) {
         lookupBtn.disabled = false;
         recordData.hidden = true;
+        recordLinks.hidden = true;
         setStatus('Could not reach the county record service. Try again, or fill this in by hand.', 'err');
         console.error(err);
       });
@@ -550,6 +565,7 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
     document.getElementById('loan-followup').hidden = true;
     document.getElementById('insurer-followup').hidden = true;
     recordData.hidden = true;
+    recordLinks.hidden = true;
     sunbiz.hidden = true;
     setStatus('');
     clearInvalid();

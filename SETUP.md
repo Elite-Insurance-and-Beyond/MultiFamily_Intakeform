@@ -152,6 +152,26 @@ cached per folio for 6 hours.
 
 Dashes are optional - `01-4103-012-0170` and `0141030120170` both work.
 
+### The county deep link
+
+Once a folio resolves, a link appears: **Open this property on the county site**.
+The working URL shape is:
+
+    https://apps.miamidadepa.gov/PropertySearch/#/?folio=0141030120170
+
+That exact form matters, and it is not guessable:
+
+- `#/report/summary?folio=` is rejected as an invalid folio
+- `?folio=` as a plain query string loads the app but never populates it
+- `#/?folio=` works - it is the same shape the county's own "Comparable Sales"
+  button uses
+
+The county app reads the folio from its on-page search box, not from the URL, so
+there is no documented deep link. This one was found by reading the app's own
+JavaScript bundle. If it ever breaks, look there again for the links it builds
+internally - the same bundle also constructs URLs for Comparable Sales, the Property
+Record Card, the Tax Collector, and the Clerk's recorded deeds.
+
 ### Two sales figures, on purpose
 
 The county's most recent sale is very often a quit-claim or intra-family transfer for
