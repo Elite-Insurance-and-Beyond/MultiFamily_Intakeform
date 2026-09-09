@@ -110,6 +110,34 @@ It is not a code fault and re-deploying alone will not clear it. Fix:
 `authorize()` touches all three services in one go, so a single approval covers
 everything. Re-run it any time you add a new Google service to the script.
 
+### If the permission prompt never appears
+
+Apps Script guesses the scopes it needs. You can stop it guessing by declaring them.
+
+1. In the Apps Script editor click the **gear icon (Project Settings)** in the far-left rail.
+2. Tick **"Show 'appsscript.json' manifest file in editor"**.
+3. Go back to the **Editor** (`<>`), open the new `appsscript.json`, and replace its
+   contents with `apps-script/appsscript.json` from this repo.
+4. Save, run **authorize** again, approve, then deploy a **New version**.
+
+That file names the three permissions explicitly - external requests, the current
+spreadsheet, and sending mail - so the consent screen has to ask for all three.
+
+### If the consent screen refuses
+
+If the script is owned by a Workspace account at insbeyond.com, an admin policy can
+block unverified internal apps from being authorised. The symptom is a consent screen
+that appears and then errors, or an "admin has blocked this app" message. A Workspace
+admin has to allow it, or the script needs to be owned by an account without that
+restriction.
+
+### Last resort
+
+If the scope still will not take, delete the deployment and create a brand new one
+(**Deploy > New deployment**, not "Manage deployments"). This forces a fresh
+authorisation binding. It issues a **new /exec URL**, so the `ENDPOINT` value in
+`index.html` has to be updated to match.
+
 ## County record lookup
 
 The caller types a Miami-Dade folio and presses **Look up**. The page asks the Apps
