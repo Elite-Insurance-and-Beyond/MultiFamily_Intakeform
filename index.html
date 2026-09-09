@@ -422,6 +422,10 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
   // Paste the Apps Script Web App URL here after deploying it.
   // See apps-script/Code.gs and SETUP.md.
   // ---------------------------------------------------------------
+  // The county's summary report reads the folio from "#/?folio=". Built here
+  // rather than taken from the backend, so the link works without a redeploy.
+  var PA_PROPERTY_URL = 'https://apps.miamidadepa.gov/PropertySearch/#/?folio=';
+
   var ENDPOINT = 'https://script.google.com/macros/s/AKfycbwJytXfhel201TMegLvpJflEkLB-pjZj9Mzn4fVsoRyJtvEAxHAfYe0kFLS2Hxr70khBA/exec';
 
   var form = document.getElementById('quote-form');
@@ -497,8 +501,10 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
       put('registered_agent_name', '');
       put('registered_agent_address', '');
     }
-    if (r.paUrl) {
-      paLink.href = r.paUrl;
+    var digits = String(r.folio || '').replace(/\D/g, '');
+    var paUrl = r.paUrl || (digits.length === 13 ? PA_PROPERTY_URL + digits : '');
+    if (paUrl) {
+      paLink.href = paUrl;
       recordLinks.hidden = false;
     } else {
       recordLinks.hidden = true;
