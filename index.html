@@ -131,11 +131,15 @@ legend{font-size:15px;font-weight:600;color:var(--navy);padding:0;margin-bottom:
 .choice:has(input:checked){border-color:var(--navy);background:var(--mist);box-shadow:inset 0 0 0 1px var(--navy)}
 .choice:has(input:focus-visible){outline:2px solid var(--amber);outline-offset:2px}
 .choice--wide{grid-column:1 / -1}
-input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;margin:0}
+input[type=radio],input[type=checkbox]{accent-color:var(--navy);width:18px;height:18px;flex:none;margin:0}
+/* Yes / No / Unknown rows read better narrow than the wide answer grids. */
+.choices--tight{grid-template-columns:repeat(auto-fit,minmax(132px,1fr));max-width:480px}
 
 /* Conditional follow-ups, revealed by JS. */
 .followup{border-left:3px solid var(--amber);padding:20px 0 0 clamp(14px,3vw,24px);margin-top:16px}
 .followup[hidden]{display:none}
+/* A follow-up that is always on show, not revealed by a choice. */
+.followup--open{padding-top:20px}
 .followup--grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px}
 .money{display:flex;align-items:center;border:1px solid var(--rule);max-width:320px}
 .money:focus-within{border-color:var(--navy)}
@@ -145,6 +149,9 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
 
 .hint{font-size:16px;line-height:1.55;color:var(--slate);margin-bottom:12px;max-width:60ch}
 .err{display:block;font-size:14px;font-weight:500;color:var(--danger);margin-top:8px}
+.stale{background:#FFF4E0;border-left:3px solid var(--amber);color:var(--ink);font-size:15px;line-height:1.55;padding:14px 18px;margin:0 0 28px}
+.stale[hidden]{display:none}
+.stale code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px}
 .err[hidden]{display:none}
 
 /* Honeypot - hidden from people, visible to naive bots. */
@@ -212,6 +219,7 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
 
 <section class="formwrap">
   <form id="quote-form" class="card" method="post" novalidate>
+    <p class="stale" id="schema-warn" role="alert" hidden>The lookup service is running an older version, so the construction, systems and renovation answers below will <b>not</b> be saved. Re-paste <code>Code.all-in-one.gs</code> into Apps Script and deploy a new version.</p>
 
     <div class="kicker">Quote request</div>
     <h2>Nine questions, about four minutes</h2>
@@ -269,6 +277,9 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
           <div><label for="last_sale_price">Last sale price</label><input id="last_sale_price" name="last_sale_price" type="text" autocomplete="off"></div>
         </div>
 
+        <p class="rsub">County extra features</p>
+        <p class="rnote" id="features-note">Anything the county records on the parcel &mdash; pool, A/C, fencing, elevators, sprinklers. This is where the pool answer below comes from.</p>
+
         <div class="sunbiz" id="sunbiz" hidden>
           <b>Owner is a company</b>
           <p>Open Sunbiz, find the exact entity name, and copy the registered agent across. The search returns near matches alphabetically &mdash; confirm the name matches before using it.</p>
@@ -324,7 +335,149 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
       </div>
     </fieldset>
 
-    <p class="step"><span>03 &nbsp;/&nbsp; Financing</span></p>
+    <p class="step"><span>03 &nbsp;/&nbsp; Construction &amp; systems</span></p>
+
+    <fieldset>
+      <legend>Construction type</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="construction_type" value="Concrete"><span>Concrete</span></label>
+        <label class="choice"><input type="radio" name="construction_type" value="Metal"><span>Metal</span></label>
+        <label class="choice"><input type="radio" name="construction_type" value="Brick / Block"><span>Brick / Block</span></label>
+        <label class="choice"><input type="radio" name="construction_type" value="Wood"><span>Wood</span></label>
+        <label class="choice"><input type="radio" name="construction_type" value="Other"><span>Other</span></label>
+      </div>
+      <div class="followup" id="construction-other" hidden>
+        <label class="field" for="construction_type_other">Describe the construction</label>
+        <input id="construction_type_other" name="construction_type_other" type="text" autocomplete="off">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Roof covering</legend>
+      <p class="hint">Tick every covering on the property &mdash; a building can have more than one.</p>
+      <div class="choices">
+        <label class="choice"><input type="checkbox" name="roof_type" value="Shingle"><span>Shingle</span></label>
+        <label class="choice"><input type="checkbox" name="roof_type" value="Architectural shingle"><span>Architectural shingle</span></label>
+        <label class="choice"><input type="checkbox" name="roof_type" value="Concrete / clay / slate tile"><span>Concrete / clay / slate tile</span></label>
+        <label class="choice"><input type="checkbox" name="roof_type" value="Wood"><span>Wood</span></label>
+        <label class="choice"><input type="checkbox" name="roof_type" value="Metal"><span>Metal</span></label>
+        <label class="choice"><input type="checkbox" name="roof_type" value="Tar &amp; gravel"><span>Tar &amp; gravel</span></label>
+        <label class="choice"><input type="checkbox" name="roof_type" value="Other"><span>Other</span></label>
+      </div>
+      <div class="followup" id="roof-other" hidden>
+        <label class="field" for="roof_type_other">Describe the roof covering</label>
+        <input id="roof_type_other" name="roof_type_other" type="text" autocomplete="off">
+      </div>
+      <div class="followup followup--open">
+        <label class="field" for="roof_year">Year the roof was last updated</label>
+        <input id="roof_year" name="roof_year" type="number" min="1900" max="2100" step="1" inputmode="numeric" placeholder="e.g. 2018" autocomplete="off">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Plumbing material</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="plumbing_material" value="Copper"><span>Copper</span></label>
+        <label class="choice"><input type="radio" name="plumbing_material" value="PVC"><span>PVC</span></label>
+        <label class="choice"><input type="radio" name="plumbing_material" value="Other"><span>Other</span></label>
+      </div>
+      <div class="followup" id="plumbing-other" hidden>
+        <label class="field" for="plumbing_material_other">Describe the plumbing</label>
+        <input id="plumbing_material_other" name="plumbing_material_other" type="text" autocomplete="off">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Is there a pool?</legend>
+      <p class="hint" id="pool-hint" hidden></p>
+      <div class="choices choices--tight">
+        <label class="choice"><input type="radio" name="has_pool" value="Yes"><span>Yes</span></label>
+        <label class="choice"><input type="radio" name="has_pool" value="No"><span>No</span></label>
+      </div>
+    </fieldset>
+
+    <p class="step"><span>04 &nbsp;/&nbsp; Updates &amp; renovations</span></p>
+
+    <fieldset>
+      <legend>Has the HVAC been updated?</legend>
+      <div class="choices choices--tight">
+        <label class="choice"><input type="radio" name="hvac_updated" value="Yes"><span>Yes</span></label>
+        <label class="choice"><input type="radio" name="hvac_updated" value="No"><span>No</span></label>
+        <label class="choice"><input type="radio" name="hvac_updated" value="Unknown"><span>Unknown</span></label>
+      </div>
+      <div class="followup" id="hvac-followup" hidden>
+        <label class="field" for="hvac_year">Year updated</label>
+        <input id="hvac_year" name="hvac_year" type="number" min="1900" max="2100" step="1" inputmode="numeric" autocomplete="off">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Has the plumbing been updated?</legend>
+      <div class="choices choices--tight">
+        <label class="choice"><input type="radio" name="plumbing_updated" value="Yes"><span>Yes</span></label>
+        <label class="choice"><input type="radio" name="plumbing_updated" value="No"><span>No</span></label>
+        <label class="choice"><input type="radio" name="plumbing_updated" value="Unknown"><span>Unknown</span></label>
+      </div>
+      <div class="followup" id="plumbing-updated-followup" hidden>
+        <label class="field" for="plumbing_year">Year updated</label>
+        <input id="plumbing_year" name="plumbing_year" type="number" min="1900" max="2100" step="1" inputmode="numeric" autocomplete="off">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Has the electrical been updated?</legend>
+      <div class="choices choices--tight">
+        <label class="choice"><input type="radio" name="electrical_updated" value="Yes"><span>Yes</span></label>
+        <label class="choice"><input type="radio" name="electrical_updated" value="No"><span>No</span></label>
+        <label class="choice"><input type="radio" name="electrical_updated" value="Unknown"><span>Unknown</span></label>
+      </div>
+      <div class="followup" id="electrical-followup" hidden>
+        <label class="field" for="electrical_year">Year updated</label>
+        <input id="electrical_year" name="electrical_year" type="number" min="1900" max="2100" step="1" inputmode="numeric" autocomplete="off">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Any structural renovations?</legend>
+      <p class="hint">Load-bearing work &mdash; walls, roof structure, foundation, additions.</p>
+      <div class="choices choices--tight">
+        <label class="choice"><input type="radio" name="renovation_structural" value="Yes"><span>Yes</span></label>
+        <label class="choice"><input type="radio" name="renovation_structural" value="No"><span>No</span></label>
+        <label class="choice"><input type="radio" name="renovation_structural" value="Unknown"><span>Unknown</span></label>
+      </div>
+      <div class="followup followup--grid" id="structural-followup" hidden>
+        <div>
+          <label class="field" for="renovation_structural_year">Year</label>
+          <input id="renovation_structural_year" name="renovation_structural_year" type="number" min="1900" max="2100" step="1" inputmode="numeric" autocomplete="off">
+        </div>
+        <div>
+          <label class="field" for="renovation_structural_detail">What was done</label>
+          <input id="renovation_structural_detail" name="renovation_structural_detail" type="text" autocomplete="off">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Any non-structural renovations?</legend>
+      <p class="hint">Kitchens, baths, flooring, windows, finishes.</p>
+      <div class="choices choices--tight">
+        <label class="choice"><input type="radio" name="renovation_nonstructural" value="Yes"><span>Yes</span></label>
+        <label class="choice"><input type="radio" name="renovation_nonstructural" value="No"><span>No</span></label>
+        <label class="choice"><input type="radio" name="renovation_nonstructural" value="Unknown"><span>Unknown</span></label>
+      </div>
+      <div class="followup followup--grid" id="nonstructural-followup" hidden>
+        <div>
+          <label class="field" for="renovation_nonstructural_year">Year</label>
+          <input id="renovation_nonstructural_year" name="renovation_nonstructural_year" type="number" min="1900" max="2100" step="1" inputmode="numeric" autocomplete="off">
+        </div>
+        <div>
+          <label class="field" for="renovation_nonstructural_detail">What was done</label>
+          <input id="renovation_nonstructural_detail" name="renovation_nonstructural_detail" type="text" autocomplete="off">
+        </div>
+      </div>
+    </fieldset>
+
+    <p class="step"><span>05 &nbsp;/&nbsp; Financing</span></p>
     <fieldset>
       <legend>Does the property have a mortgage?</legend>
       <div class="choices">
@@ -340,7 +493,7 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
       </div>
     </div>
 
-    <p class="step"><span>04 &nbsp;/&nbsp; Current insurance</span></p>
+    <p class="step"><span>06 &nbsp;/&nbsp; Current insurance</span></p>
     <fieldset>
       <legend>Is the property currently insured?</legend>
       <div class="choices">
@@ -359,7 +512,7 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
       </div>
     </div>
 
-    <p class="step"><span>05 &nbsp;/&nbsp; What you&rsquo;re after</span></p>
+    <p class="step"><span>07 &nbsp;/&nbsp; What you&rsquo;re after</span></p>
     <fieldset>
       <legend>What are you looking for?</legend>
       <div class="choices">
@@ -371,7 +524,7 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
       </div>
     </fieldset>
 
-    <p class="step"><span>06 &nbsp;/&nbsp; Anything else</span></p>
+    <p class="step"><span>08 &nbsp;/&nbsp; Anything else</span></p>
     <div style="margin-top:28px">
       <label class="field" for="additional_info">Additional information</label>
       <p class="hint">Roof age, recent claims, prior losses, updates to plumbing or electrical, a deadline you&rsquo;re working against &mdash; anything that helps us quote it accurately.</p>
@@ -428,6 +581,8 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
 
   // The county call goes out through Apps Script, so it can fail three ways that
   // look identical to a caller. Name them, so the message on screen is true.
+  // Must match SCHEMA_VERSION in Code.gs.
+  var EXPECTED_SCHEMA = 2;
   var LOOKUP_TIMEOUT_MS = 20000;
   var LOOKUP_TRIES = 2;
   var LOOKUP_MESSAGES = {
@@ -445,11 +600,14 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
   var loadedAt = Date.now();
 
   // --- Conditional follow-ups -----------------------------------
-  function wireReveal(radioName, panelId) {
+  // Radios are exclusive, so any change in the group settles the panel: the
+  // one that fired is either the trigger or the thing that replaced it.
+  function wireReveal(radioName, panelId, triggerValue) {
     var panel = document.getElementById(panelId);
+    var want = triggerValue || 'Yes';
     form.querySelectorAll('input[name="' + radioName + '"]').forEach(function (radio) {
       radio.addEventListener('change', function () {
-        var show = radio.checked && radio.value === 'Yes';
+        var show = radio.checked && radio.value === want;
         panel.hidden = !show;
         if (!show) {
           panel.querySelectorAll('input').forEach(function (el) { el.value = ''; });
@@ -457,8 +615,49 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
       });
     });
   }
+
+  // Checkboxes are not exclusive, so the panel follows one box's own state.
+  function wireCheckboxReveal(boxName, boxValue, panelId) {
+    var panel = document.getElementById(panelId);
+    var box = form.querySelector('input[name="' + boxName + '"][value="' + boxValue + '"]');
+    if (!box || !panel) return;
+    box.addEventListener('change', function () {
+      panel.hidden = !box.checked;
+      if (!box.checked) {
+        panel.querySelectorAll('input').forEach(function (el) { el.value = ''; });
+      }
+    });
+  }
+
+  // --- Is the backend current? ----------------------------------
+  // A stale deployment still accepts a submission and still answers ok, it just
+  // drops every question it does not know about. Silence would cost a caller a
+  // whole page of answers, so ask once on load and say so plainly.
+  (function checkBackend() {
+    var warn = document.getElementById('schema-warn');
+    if (!warn || !ENDPOINT) return;
+    fetch(ENDPOINT)
+      .then(function (res) { return res.text(); })
+      .then(function (body) {
+        var r = JSON.parse(body);
+        warn.hidden = !(r && r.ok === true && Number(r.schema || 0) < EXPECTED_SCHEMA);
+      })
+      .catch(function () {
+        // Offline, or the endpoint is unreachable. Submitting will fail loudly
+        // on its own; do not put a scary banner up on a guess.
+      });
+  })();
+
   wireReveal('has_mortgage', 'loan-followup');
   wireReveal('currently_insured', 'insurer-followup');
+  wireReveal('construction_type', 'construction-other', 'Other');
+  wireReveal('plumbing_material', 'plumbing-other', 'Other');
+  wireReveal('hvac_updated', 'hvac-followup');
+  wireReveal('plumbing_updated', 'plumbing-updated-followup');
+  wireReveal('electrical_updated', 'electrical-followup');
+  wireReveal('renovation_structural', 'structural-followup');
+  wireReveal('renovation_nonstructural', 'nonstructural-followup');
+  wireCheckboxReveal('roof_type', 'Other', 'roof-other');
 
   // --- County record lookup -------------------------------------
   var folioInput = document.getElementById('folio');
@@ -484,6 +683,37 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
     return (n === 0 || n) ? '$' + Number(n).toLocaleString('en-US') : '';
   }
 
+  // The county lists a pool in the parcel's extra features. A hit is solid
+  // evidence, so it pre-selects Yes. A miss is weaker - the table can simply be
+  // out of date - so it says so and leaves the answer to the caller.
+  function fillFeatures(r) {
+    var note = document.getElementById('features-note');
+    var hint = document.getElementById('pool-hint');
+    var yes = form.querySelector('input[name="has_pool"][value="Yes"]');
+    // An older backend sends no feature list at all. That is not the same as a
+    // parcel with no features, and must never be reported as "no pool".
+    var reported = Object.prototype.hasOwnProperty.call(r, 'extraFeatures');
+    var feats = (r.extraFeatures || []).filter(Boolean);
+
+    if (note) {
+      note.textContent = !reported
+        ? 'Extra features need the updated Apps Script. Re-paste Code.all-in-one.gs and deploy a new version.'
+        : (feats.length ? feats.join(' · ')
+                        : 'The county lists no extra features on this parcel.');
+    }
+    if (!hint) return;
+
+    if (!reported) {
+      hint.textContent = 'Pool not checked - the backend is out of date. Ask the caller.';
+    } else if (r.hasPool) {
+      if (yes) yes.checked = true;
+      hint.textContent = 'County lists "' + (r.poolFeature || 'a pool') + '" - answered Yes for you. Confirm with the caller.';
+    } else {
+      hint.textContent = 'County lists no pool on this parcel. Still worth asking - the table can lag.';
+    }
+    hint.hidden = false;
+  }
+
   function fillRecord(r) {
     put('owner_name', r.owner);
     put('year_built', r.yearBuilt);
@@ -502,6 +732,7 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
     // These live in the questions below, but the county already answered them.
     if (r.address) put('property_address', r.address);
     if (r.livingUnits) put('unit_count', r.livingUnits);
+    fillFeatures(r);
 
     if (r.ownerIsEntity && r.sunbizUrl) {
       sunbizLink.href = r.sunbizUrl;
@@ -562,6 +793,9 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
 
     lookupBtn.disabled = true;
     setStatus('Looking up the county record…');
+    // Clear last folio's findings so a failure never leaves stale hints on screen.
+    var staleHint = document.getElementById('pool-hint');
+    if (staleHint) { staleHint.hidden = true; staleHint.textContent = ''; }
 
     function attempt(n) {
       return fetchFolioOnce(folio).catch(function (err) {
@@ -686,9 +920,12 @@ input[type=radio]{accent-color:var(--navy);width:18px;height:18px;flex:none;marg
   // --- Payload --------------------------------------------------
   function collect() {
     var data = {};
+    // Checkboxes share one name and FormData reports an entry per tick, so
+    // join them; assigning would keep only the last box ticked.
     new FormData(form).forEach(function (value, key) {
       var v = String(value).trim();
-      if (v) data[key] = v;
+      if (!v) return;
+      data[key] = Object.prototype.hasOwnProperty.call(data, key) ? data[key] + ', ' + v : v;
     });
     data.loan_amount = data.loan_amount ? data.loan_amount.replace(/,/g, '') : '';
     data.page_url = location.href;

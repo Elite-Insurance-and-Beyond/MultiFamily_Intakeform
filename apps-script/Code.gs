@@ -11,6 +11,11 @@
  * Then copy the /exec URL into ENDPOINT in index.html.
  */
 
+// Bump this whenever FIELDS gains or loses a question. The page compares it
+// against its own copy and warns the caller if this script was never
+// redeployed - otherwise new answers are typed in and silently dropped.
+var SCHEMA_VERSION = 2;
+
 var CONFIG = {
   SHEET_NAME: 'Leads',
   NOTIFY_TO: 'quote@insbeyond.com',
@@ -48,6 +53,26 @@ var FIELDS = [
   { key: 'property_address',  label: 'Property address',  required: true, emailSkip: true },
   { key: 'unit_count',        label: 'Number of units',   required: true },
   { key: 'occupancy',         label: 'Occupancy',         required: true },
+  { key: 'construction_type',       label: 'Construction type' },
+  { key: 'construction_type_other', label: 'Construction (other)' },
+  { key: 'roof_type',               label: 'Roof covering' },
+  { key: 'roof_type_other',         label: 'Roof covering (other)' },
+  { key: 'roof_year',               label: 'Roof year updated' },
+  { key: 'plumbing_material',       label: 'Plumbing material' },
+  { key: 'plumbing_material_other', label: 'Plumbing material (other)' },
+  { key: 'has_pool',                label: 'Pool' },
+  { key: 'hvac_updated',            label: 'HVAC updated' },
+  { key: 'hvac_year',               label: 'HVAC year updated' },
+  { key: 'plumbing_updated',        label: 'Plumbing updated' },
+  { key: 'plumbing_year',           label: 'Plumbing year updated' },
+  { key: 'electrical_updated',      label: 'Electrical updated' },
+  { key: 'electrical_year',         label: 'Electrical year updated' },
+  { key: 'renovation_structural',        label: 'Structural renovations' },
+  { key: 'renovation_structural_year',   label: 'Structural renovation year' },
+  { key: 'renovation_structural_detail', label: 'Structural renovation detail' },
+  { key: 'renovation_nonstructural',        label: 'Non-structural renovations' },
+  { key: 'renovation_nonstructural_year',   label: 'Non-structural renovation year' },
+  { key: 'renovation_nonstructural_detail', label: 'Non-structural renovation detail' },
   { key: 'has_mortgage',      label: 'Has mortgage' },
   { key: 'loan_amount',       label: 'Current loan amount', money: true },
   { key: 'currently_insured', label: 'Currently insured' },
@@ -80,7 +105,8 @@ function doGet(e) {
   try {
     var op = (e && e.parameter && e.parameter.op) || '';
     if (op === 'folio') return json_(lookupFolio_((e.parameter.folio || '')));
-    return json_({ ok: true, service: 'eib-quote-intake', ts: new Date().toISOString() });
+    return json_({ ok: true, service: 'eib-quote-intake', schema: SCHEMA_VERSION,
+                   fields: FIELDS.length, ts: new Date().toISOString() });
   } catch (err) {
     return json_({ ok: false, error: 'Lookup failed inside the script: ' + String(err && err.message || err) });
   }
@@ -145,18 +171,45 @@ function getSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
   if (!sheet) sheet = ss.insertSheet(CONFIG.SHEET_NAME);
+  var header = ['Received', 'Reference']
+    .concat(FIELDS.map(function (f) { return f.label; }))
+    .concat(['Page URL', 'Time on page (ms)']);
+
   if (sheet.getLastRow() === 0) {
-    var header = ['Received', 'Reference']
-      .concat(FIELDS.map(function (f) { return f.label; }))
-      .concat(['Page URL', 'Time on page (ms)']);
     sheet.appendRow(header);
-    sheet.getRange(1, 1, 1, header.length)
-      .setFontWeight('bold')
-      .setBackground(BRAND.navy)
-      .setFontColor('#FFFFFF');
+    styleHeader_(sheet, header.length);
+    sheet.setFrozenRows(1);
+    return sheet;
+  }
+
+  // Adding a question changes the column layout. Without this the new answers
+  // land in unlabelled columns and every later column is read under the wrong
+  // heading. Rows written before the change keep their old layout - they are
+  // not rewritten, so re-read anything older than the newest header.
+  var width = Math.max(sheet.getLastColumn(), header.length);
+  var current = sheet.getRange(1, 1, 1, width).getValues()[0];
+  var same = current.length >= header.length && header.every(function (h, i) {
+    return String(current[i] || '') === h;
+  });
+  if (!same) {
+    if (sheet.getMaxColumns() < header.length) {
+      sheet.insertColumnsAfter(sheet.getMaxColumns(), header.length - sheet.getMaxColumns());
+    }
+    sheet.getRange(1, 1, 1, header.length).setValues([header]);
+    if (width > header.length) {
+      sheet.getRange(1, header.length + 1, 1, width - header.length).clearContent();
+    }
+    styleHeader_(sheet, header.length);
     sheet.setFrozenRows(1);
   }
   return sheet;
+}
+
+function styleHeader_(sheet, width) {
+  sheet.getRange(1, 1, 1, width)
+    .setFontWeight('bold')
+    .setBackground(BRAND.navy)
+    .setFontColor('#FFFFFF');
 }
 
 function fmt_(field, value) {
@@ -394,10 +447,12 @@ function lookupFolio_(rawFolio) {
   var owner = ((data.OwnerInfos || [])[0] || {}).Name || '';
   var site = (data.SiteAddress || [])[0] || {};
   var sales = parseSales_(data.SalesInfos);
+  var feats = parseFeatures_(data);
   var isEntity = ENTITY_RE.test(owner);
 
   var out = {
     ok: true,
+    schema: SCHEMA_VERSION,
     folio: info.FolioNumber || folio,
     paUrl: PA_PROPERTY_URL + folio,
     address: site.Address || '',
@@ -416,8 +471,11 @@ function lookupFolio_(rawFolio) {
     halfBaths: Number(info.HalfBathroomCount) || 0,
     livingArea: num_(info.BuildingHeatedArea),
     adjustedArea: num_(info.BuildingEffectiveArea),
-    actualArea: num_(info.BuildingActualArea),
+    actualArea: num_(info.BuildingGrossArea),
     lotSize: num_(info.LotSize),
+    extraFeatures: feats.names,
+    hasPool: feats.hasPool,
+    poolFeature: feats.pool,
     lastSale: sales.last,
     lastQualifiedSale: sales.lastQualified,
     salesCount: sales.count
@@ -425,6 +483,42 @@ function lookupFolio_(rawFolio) {
 
   try { cache.put('folio_' + folio, JSON.stringify(out), 21600); } catch (ignore) {}
   return out;
+}
+
+/**
+ * The county repeats every extra feature once per roll year, so read only the
+ * newest year. A pool shows up here as a "Pool - ..." description; there is no
+ * dedicated pool flag anywhere in the payload.
+ *
+ * Note what this list is NOT: entries like "Wall - CBS unreinforced" describe a
+ * yard wall or fence, not how the building itself is built. Construction type
+ * is not in the county data and has to be asked.
+ */
+function parseFeatures_(data) {
+  var rows = ((data || {}).ExtraFeature || {}).ExtraFeatureInfos || [];
+  var latest = 0;
+  rows.forEach(function (r) {
+    var y = Number(r.RollYear) || 0;
+    if (y > latest) latest = y;
+  });
+
+  var seen = {};
+  var names = [];
+  rows.forEach(function (r) {
+    if ((Number(r.RollYear) || 0) !== latest) return;
+    var d = String(r.Description || '').trim();
+    if (!d || seen[d]) return;
+    seen[d] = true;
+    names.push(d);
+  });
+  names.sort();
+
+  var pool = '';
+  for (var i = 0; i < names.length; i++) {
+    if (/\bpool\b/i.test(names[i])) { pool = names[i]; break; }
+  }
+
+  return { names: names, pool: pool, hasPool: !!pool, rollYear: latest };
 }
 
 function num_(v) {
@@ -472,6 +566,62 @@ function parseSales_(list) {
  * Running this touches every service the script uses, so one approval covers
  * all of them. Afterwards: Deploy > Manage deployments > New version.
  */
+/**
+ * Delivery test. Run this from the editor when the quote desk says a lead
+ * never arrived, then read the log.
+ *
+ * It sends two messages a minute apart in style but not in substance:
+ *   1. plain text, plain sender name, no image
+ *   2. exactly what a real lead looks like - brand name, HTML, inline crest
+ *
+ * If (1) lands and (2) does not, nothing is wrong with the script: the
+ * receiving mail system is filtering on how the message looks. insbeyond.com
+ * is on Microsoft 365, whose anti-phishing rules quarantine mail that carries a
+ * company's name in the From line but comes from a consumer Gmail address -
+ * which is exactly what this script does. The fix is on the Microsoft side:
+ * allow the sending address in the Tenant Allow/Block List, or add a mail-flow
+ * rule for it. Look in Quarantine first (security.microsoft.com >
+ * Review > Quarantine); quarantined mail never reaches Junk, so the mailbox
+ * owner sees nothing at all.
+ *
+ * If NEITHER lands, the send quota is the thing to check - it is printed below.
+ */
+function mailTest() {
+  var to = CONFIG.NOTIFY_TO;
+  var out = [];
+  out.push('Sending to: ' + to);
+  out.push('Quota before: ' + MailApp.getRemainingDailyQuota() + ' sends left today');
+
+  MailApp.sendEmail({
+    to: to,
+    subject: 'EIB delivery test 1 of 2 - plain',
+    body: 'Plain text, default sender name, no images.\n\n' +
+          'If this one arrives and the branded one does not, the receiving ' +
+          'mail system is filtering on appearance, not on the script.'
+  });
+  out.push('Sent 1 of 2 (plain).');
+
+  MailApp.sendEmail({
+    to: to,
+    name: CONFIG.FROM_NAME,
+    subject: 'EIB delivery test 2 of 2 - branded',
+    htmlBody: '<p style="font-family:Arial">Branded HTML, same shape as a real ' +
+              'lead notification.</p>',
+    body: 'Branded HTML, same shape as a real lead notification.'
+  });
+  out.push('Sent 2 of 2 (branded, from "' + CONFIG.FROM_NAME + '").');
+
+  out.push('Quota after: ' + MailApp.getRemainingDailyQuota() + ' sends left today');
+  out.push('');
+  out.push('Quota dropping by 2 means Google accepted both. Anything missing ' +
+           'after that was dropped by the receiving side - check Junk, then ' +
+           'Quarantine at security.microsoft.com.');
+
+  var text = out.join('\n');
+  console.log(text);
+  return text;
+}
+
 function authorize() {
   var report = [];
 

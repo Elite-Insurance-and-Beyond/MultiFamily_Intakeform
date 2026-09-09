@@ -215,13 +215,17 @@ Every lookup is tried twice before it gives up, with a short pause between,
 so a single transient hiccup fixes itself. The caller sees
 "trying once more..." while that happens.
 
-### Verify the area labels once
+### The area labels, settled
 
-The county page shows Actual / Living / Adjusted area, and the API returns four area
-fields. The mapping used here is Living=BuildingHeatedArea, Adjusted=BuildingEffectiveArea.
-For the test folio Actual (2,264) comes back *smaller* than Living (3,720), which is
-backwards from how those usually relate. Put two or three folios side by side with the
-live county page once and confirm before relying on the numbers for rating.
+Checked against the county's own page for folio 01-4103-012-0170, which shows
+Actual 3,720 / Living 3,720 / Adjusted 2,938 / Lot 5,500.
+
+- `living_area`  = `BuildingHeatedArea`   — correct
+- `adjusted_area`= `BuildingEffectiveArea`— correct
+- `actualArea`   = `BuildingGrossArea`    — **fixed 2026-09-09**; it previously
+  read `BuildingActualArea` (2,264 for that folio), a per-segment figure the
+  county never displays. Only `living_area` and `adjusted_area` appear on the
+  form, so no submitted lead carried the wrong number.
 
 ## 4. How the caller uses it
 
@@ -255,6 +259,59 @@ a mockup. Regenerate them after changing the template if you want them to stay h
 2. Submit with a required field blank — it should refuse and focus that field.
 3. Reply to the notification email — it should address the lead, not the script owner.
 4. Click **Log another request** — the form should clear but keep your name.
+
+## When the quote desk never gets the email
+
+Checked 2026-09-09, after leads stopped arriving at `quote@insbeyond.com`.
+
+**The mailbox is fine and the script is fine.** Both were verified directly:
+
+| Check | Result |
+|---|---|
+| `quote@insbeyond.com` accepts mail | `250 2.1.5 Recipient OK` at the MX |
+| A made-up address on the domain | `550 5.4.1 rejected` — so it is a real box, not a catch-all |
+| The form's POST path | `{"ok":true,"ref":"EIB-260909-0003"}` — row written, no exception |
+
+So Google sends it and Microsoft accepts it. The message is being filtered
+**after** acceptance, and the likely reason is visible in the code:
+`MailApp.sendEmail` sends from a personal Gmail account while setting the
+display name to "Elite Insurance & Beyond". A gmail.com address presenting a
+company's name is the exact shape Microsoft Defender's anti-phishing and
+spoof-intelligence rules quarantine.
+
+`insbeyond.com` is on Microsoft 365 (MX `insbeyond-com.mail.protection.outlook.com`),
+not Google, so the script cannot send as the domain — Apps Script can only send
+as the Google account that owns it.
+
+### How to confirm it in two minutes
+
+Run `mailTest` from the Apps Script editor. It sends two messages: one plain,
+one branded exactly like a real lead, and prints the send quota before and
+after.
+
+- **Quota drops by 2, neither arrives** → the receiving side dropped both.
+- **Plain arrives, branded does not** → confirmed: it is filtered on appearance.
+- **Quota does not drop** → the script never sent; read the execution log.
+
+### The fix, in order of preference
+
+1. **Release and allow it in Microsoft 365.** Go to security.microsoft.com >
+   Email & collaboration > Review > Quarantine, filter by recipient
+   `quote@insbeyond.com`, and release what is held. Then add the sending Gmail
+   address to the Tenant Allow/Block List so it stops happening. Quarantined
+   mail never reaches Junk, so nobody sees it without looking here.
+2. **Send from the domain instead.** The domain already has an Amazon SES
+   verification record (`amazonses:` in its TXT records). Sending through SES
+   as `quote@insbeyond.com` would align SPF and DKIM and end the problem for
+   good. It needs SES credentials and a rewrite of `sendNotification_` to use
+   `UrlFetchApp` instead of `MailApp`.
+3. **Set `CONFIG.NOTIFY_CC`** to an address on a different provider. This does
+   not fix the filtering, but it stops a lead being lost while the filtering is
+   sorted out.
+
+**The sheet is the durable record.** Every lead is written there before the
+email is attempted, so nothing submitted has been lost — the rows are in the
+`Leads` tab regardless of what happened to the mail.
 
 ## Things that will bite you
 
