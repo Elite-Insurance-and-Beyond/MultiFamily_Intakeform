@@ -36,6 +36,16 @@ a:hover{color:var(--amber-deep)}
 .skip{position:absolute;left:-9999px}
 .skip:focus{position:fixed;left:16px;top:16px;z-index:10;background:var(--amber);color:var(--ink);padding:10px 16px;font-weight:600;text-decoration:none}
 
+/* --- Phones -------------------------------------------------------------
+   The form is the whole product on a phone, so every control fills the width
+   and becomes a target you can hit with a thumb while holding a handset. --- */
+@media (max-width:560px){
+  .submit,.btn-lookup,.again{width:100%}
+  .internal input{max-width:none;width:100%}
+  .money{max-width:none}
+  .choices--tight{max-width:none}
+}
+
 /* --- Masthead --- */
 .masthead{background:var(--navy);color:#fff}
 .masthead .shell{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 32px;padding-top:16px;padding-bottom:16px}
@@ -43,7 +53,7 @@ a:hover{color:var(--amber-deep)}
 .brand img{width:44px;height:auto;display:block;flex:none}
 .brand span{font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
 .masthead nav{display:flex;align-items:center;gap:clamp(16px,3vw,28px)}
-.masthead .tel{color:#fff;text-decoration:none;font-size:16px;font-weight:500;white-space:nowrap}
+.masthead .tel{color:#fff;text-decoration:none;font-size:16px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;min-height:44px}
 .masthead .tel:hover{color:var(--amber)}
 .btn-amber{background:var(--amber);color:var(--ink);text-decoration:none;font-size:15px;font-weight:600;padding:11px 20px;white-space:nowrap;display:inline-block}
 .btn-amber:hover{background:var(--amber-deep);color:var(--ink)}
@@ -123,7 +133,10 @@ textarea{line-height:1.5;resize:vertical}
 input:focus,textarea:focus{border-color:var(--navy);outline:2px solid var(--amber);outline-offset:-1px}
 input[aria-invalid="true"],textarea[aria-invalid="true"]{border-color:var(--danger)}
 
-fieldset{border:0;padding:0;margin:32px 0 0}
+/* min-width:0 is not optional. Browsers give fieldset an implicit
+   min-inline-size:min-content that ignores the parent's width, so a wide
+   child stretches the whole page instead of wrapping. */
+fieldset{border:0;padding:0;margin:32px 0 0;min-width:0}
 legend{font-size:15px;font-weight:600;color:var(--navy);padding:0;margin-bottom:12px}
 .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
 .choice{display:flex;align-items:center;gap:14px;border:1px solid var(--rule);padding:16px;font-size:17px;cursor:pointer}
@@ -222,7 +235,7 @@ input[type=radio],input[type=checkbox]{accent-color:var(--navy);width:18px;heigh
     <p class="stale" id="schema-warn" role="alert" hidden>The lookup service is running an older version, so the construction, systems and renovation answers below will <b>not</b> be saved. Re-paste <code>Code.all-in-one.gs</code> into Apps Script and deploy a new version.</p>
 
     <div class="kicker">Quote request</div>
-    <h2>Nine questions, about four minutes</h2>
+    <h2>Twenty questions, about six minutes</h2>
     <p class="card__lede">Answer what you know. Anything you&rsquo;re unsure about, leave blank and we&rsquo;ll track it down.</p>
 
     <div class="internal">
